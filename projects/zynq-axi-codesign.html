@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zynq FPGA Hardware/Software Co-Design · Project</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <main class="section">
+    <a href="../index.html#projects" class="card-link">← Back to projects</a>
+
+    <h1 style="margin-top:1rem;">Zynq FPGA Hardware/Software Co-Design with Custom AXI Peripheral</h1>
+
+    <!-- Video -->
+    <section style="margin-top:1.5rem;">
+      <h2>Demo video</h2>
+      <div style="margin-top:1rem;">
+        <iframe width="560" height="315"
+                src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
+                title="Zynq co-design demo"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section style="margin-top:2rem;">
+      <h2>Summary</h2>
+      <p style="margin-top:1rem;">
+        This project explores hardware/software co-design on a Zynq SoC by integrating a custom AXI4-Lite
+        peripheral with the ARM Cortex-A9 processing system. The goal is to expose FPGA-accelerated functions
+        through a clean, low-latency interface to Linux userspace.[file:30]
+      </p>
+      <p style="margin-top:0.8rem;">
+        The design uses memory-mapped I/O and PetaLinux kernel modules with character drivers to validate
+        data flow across AXI interconnects and hardware registers. By offloading compute-intensive work to
+        FPGA logic and partitioning responsibilities across hardware–software boundaries, the system achieves
+        substantially lower execution latency compared to pure software on the Cortex-A9.[file:30]
+      </p>
+    </section>
+
+    <!-- Repo link -->
+    <section style="margin-top:2rem;">
+      <a class="btn primary" href="https://github.com/AdityaVMVS/YOUR_ZYNQ_PROJECT_REPO" target="_blank">
+        View GitHub repository
+      </a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 · V.M.V.S. Aditya · Semiconductor & Embedded Portfolio</p>
+  </footer>
+</body>
+</html>
