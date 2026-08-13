@@ -1,8 +1,8 @@
 # Adding a blog post
 
-1. Copy `blog-template.html` and rename it, for example `rtos-priority-inversion.html`.
+1. Inside `blogs/`, copy `blog-template.html` and rename it, for example `rtos-priority-inversion.html`.
 2. Replace the template title, summary, publication date, tags, and article body.
-3. In `blogs.html`, copy one `.post-card` block and update:
+3. In `blogs/index.html`, copy one `.post-card` block and update:
    - `data-date` using `YYYY-MM-DD` so the newest post sorts first.
    - `data-tags` with one or more comma-separated tag IDs.
    - The visible date, title, summary, labels, and both article links.

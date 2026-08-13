@@ -54,7 +54,7 @@
       <a href="#education">Education</a>
       <a href="#research">Research</a>
       <a href="#achievements">Achievements</a>
-      <a href="blogs.html">Blog</a>
+      <a href="blogs/">Blog</a>
       <a href="#contact">Contact</a>
     </nav>
   </header>
@@ -75,31 +75,32 @@
   <div class="hero-inner hero-layout">
     <div class="hero-text hero-text-centered">
       <!-- <p class="hero-kicker"><span></span> Computer Engineering · Texas A&amp;M</p> -->
-      <p class="hero-tagline">Embedded Systems · Networking · Hardware-Software Codesign · Edge AI · Robotics</p>
-      <h1>Building reliable systems<br><span>from silicon to software.</span></h1>
+      <p class="hero-tagline">Embedded Systems · Hardware-Software Codesign · Edge AI · Robotics</p>
+      <h1>Building reliable systems<br><span>from silicon to software</span></h1>
       <p class="hero-description">
-        I’m V.M.V.S. Aditya, an embedded software engineer and computer engineering graduate student focused on
-        deterministic firmware, industrial networking, FPGA–SoC systems, and edge intelligence.
+        I am an embedded software engineer and computer engineering graduate student who enjoys building and designing the hardware as much as making it behave from digital logic and verification to writing the firmware for industrial networks and different embedded applications that just work every single cycle :)
       </p>
       <div class="hero-actions">
         <a href="#projects" class="btn primary">Explore my work</a>
-        <a href="blogs.html" class="btn secondary">Read the blog</a>
+        <a href="blogs/" class="btn secondary">Read the blog</a>
       </div>
-      <p class="hero-location"><span></span> College Station, TX · Open to 2026–27 opportunities</p>
-      <div class="hero-links hero-links-inline">
+      <p class="hero-location"><span></span> Open to internship from Fall 2026 to Spring 2027 and full-time roles from Summer 2027</p>
+      <!-- <div class="hero-links hero-links-inline">
         <a href="mailto:aditya.vmvs@tamu.edu">Email</a> ·
         <a href="https://github.com/AdityaVMVS" target="_blank">GitHub</a> ·
         <a href="https://www.linkedin.com/in/v-m-v-s-aditya-8b85bb168/" target="_blank">LinkedIn</a>
-      </div>
+      </div> -->
     </div>
 
     <div class="hero-profile hero-profile-right">
       <div class="profile-card profile-card-dark">
         <img src="assets/profile.jpeg" alt="V.M.V.S. Aditya">
         <p class="profile-caption">
-            <b>Seeking internships: </b><br> Fall 2026 · Spring 2027 <br>
-            <b>Seeking Full time:</b><br> Summer 2027 <br>
-          </p>
+          <strong class="profile-name">V.M.V.S. Aditya</strong>
+          <span>MS, Computer Engineering</span>
+          <span>Texas A&amp;M University</span>
+          <span>College Station, TX</span>
+        </p>
       </div>
     </div>
   </div>
@@ -110,13 +111,12 @@
     <section id="about" class="section">
       <h2>About</h2>
       <p>
-        I am pursuing a Master of Science in Computer Engineering at Texas A&M University, building on a
-        gold-medal B.Tech in Electronics and Communication Engineering from SRM University AP.[file:30]
+        I am a Master's student in Computer Engineering at Texas A&M University and before that, I graduated
+        top of my class from SRM University AP with a gold medal in Electronics and Communication Engineering.
+        In between, I spent three years shipping firmware that industrial machines actually depend on.
       </p>
       <p>
-        My work spans embedded firmware, industrial Ethernet protocols, FPGA–SoC co-design, and kernel-level
-        operating system internals. I enjoy designing deterministic systems that connect silicon, firmware,
-        and networks in real hardware setups.[file:30]
+        I like problems that live at the boundary of hardware and software, where a scheduler, a driver, and a signal on an oscilloscope all have to agree with each other. Whether it's an RTOS task, an FPGA pipeline, a kernel scheduler, a computer architecture problem, or a hardware design or verification problem, I am happiest when I am making a real system behave predictably under pressure.
       </p>
     </section>
 
@@ -128,12 +128,13 @@
           <h3>Embedded Software Engineer · Analog Devices, Inc.</h3>
           <p>Bengaluru, India · Aug 2024 – Aug 2025</p>
           <p>
-            Worked on FreeRTOS-based industrial Ethernet stacks, stress-tested real-time systems, and built
-            hardware-in-the-loop validation for multi-node setups across SPI, UART, and Ethernet.[file:30]
+            Owned the reliability of real-time industrial switch firmware, chasing down race conditions,
+            hardening RTOS task scheduling, and building out automated hardware-in-the-loop testing so the
+            team could trust every release before it shipped.
           </p>
           <p>
-            Redesigned scheduling, buffering, and synchronization to remove TCP/IP and UDP race conditions,
-            achieving deterministic 48-hour stress runs at millisecond cycle times under high load.[file:30]
+            Spent a lot of time thinking about timing: how firmware behaves under sustained load, over long
+            stress runs, and across dense multi-node hardware setups where a single missed deadline matters.
           </p>
         </article>
 
@@ -141,8 +142,9 @@
           <h3>Associate Embedded Software Engineer · Analog Devices, Inc.</h3>
           <p>Dec 2022 – Aug 2024</p>
           <p>
-            Focused on POWERLINK and EtherCAT firmware behavior, ring redundancy under hot-plug stress, and
-            PHY-level control logic to enforce priority and avoid collisions in production systems.[file:30]
+            Worked deep in different industrial Ethernet protocol firmware, making node configuration faster and more flexible,
+            and hardening the system so it stayed stable through the kind of hot-plugging and edge-case
+            behavior that only shows up in real production environments.
           </p>
         </article>
 
@@ -150,8 +152,9 @@
           <h3>Software Engineering Intern · Analog Devices, Inc.</h3>
           <p>Jan 2022 – Dec 2022</p>
           <p>
-            Automated EtherCAT configuration generation with Python, reducing set-up time dramatically and
-            enabling large multi-device deployments with consistent, validated network behavior.[file:30]
+            Got my start on automating the configuration workflows that used for manual and error-prone, and spent
+            a lot of hands-on time with test equipment, learning how firmware actually behaves once it leaves
+            the IDE and hits real hardware.
           </p>
         </article>
       </div>
@@ -161,14 +164,16 @@
     <section id="projects" class="section">
       <h2>Selected Projects</h2>
       <p class="section-intro">
-        Each project page includes a short explanation, demo video, and a link to the corresponding repository.
+        A few things I've built for fun, for class, and because I couldn't leave a hard problem alone.
+        Each project page has a short write-up, a demo, and a link to the code.
       </p>
       <div class="cards projects-stack">
         <article class="card">
           <h3>Zynq FPGA Hardware/Software Co-Design with Custom AXI Peripheral</h3>
           <p>
-            Hardware/software co-design on Zynq integrating a custom AXI4-Lite IP with ARM Cortex-A9, exposing
-            FPGA-accelerated functionality to Linux userspace via kernel modules and character drivers.[file:30]
+            Built my own hardware peripheral from scratch and taught Linux how to talk to a custom
+            AXI4-Lite IP wired into an ARM Cortex-A9, exposed to userspace through a kernel module so software
+            could reach straight into the FPGA fabric.
           </p>
           <div class="card-meta">
             <span>Zynq SoC · AXI4-Lite · PetaLinux</span>
@@ -179,8 +184,9 @@
         <article class="card">
           <h3>STM32 Real-Time Edge AI System</h3>
           <p>
-            Real-time embedded system on STM32 with register-level configuration, FreeRTOS scheduling, TinyML
-            inference, and telemetry streaming to a Linux host over TCP/IP sockets.[file:30]
+            A tiny sensor node that thinks for itself on STM32 and firmware running FreeRTOS, sensing the world in
+            real time, running inference on the edge, and streaming everything back to a Linux host for
+            long-haul telemetry and fault monitoring.
           </p>
           <div class="card-meta">
             <span>STM32 · FreeRTOS · TinyML</span>
@@ -191,8 +197,9 @@
         <article class="card">
           <h3>x86 Kernel Internals: Paging, Scheduling, and Block I/O</h3>
           <p>
-            Custom x86 kernel on QEMU with demand paging, two-level page tables, TLB management, FIFO scheduling,
-            and interrupt-driven block I/O to improve concurrency and reduce spin-wait overhead.[file:30]
+            Built an operating system kernel from the ground up on QEMU that has demand paging, a scheduler, and a
+            non-blocking disk driver, all designed so threads keep working instead of sitting around waiting
+            on I/O.
           </p>
           <div class="card-meta">
             <span>OS internals · QEMU · x86</span>
@@ -203,8 +210,9 @@
         <article class="card">
           <h3>PACIPV Cache Replacement Policy</h3>
           <p>
-            Prediction-based cache replacement policy implemented in C++ inside ZSim, benchmarked against
-            LRU/SRRIP/DRRIP on SPEC CPU2006 and PARSEC workloads.[file:30]
+            Designed a smarter way for a CPU cache to decide what to keep and what to evict, then put it
+            through its paces against industry-standard policies on real-world workloads to see how it
+            actually held up.
           </p>
           <div class="card-meta">
             <span>C++ · ZSim · Cache policies</span>
@@ -221,11 +229,11 @@
       <div class="skills-grid skills-stack">
         <div class="skills-column">
           <div class="skill-heading"><span>01</span><div><h3>Languages</h3><p>Production code, automation, and hardware design</p></div></div>
-          <ul><li>C, Embedded C (MISRA C)</li><li>C++ for systems and simulation</li><li>Python for automation and tooling</li><li>Verilog / SystemVerilog (RTL, testbenches)</li></ul>
+          <ul><li>C, Embedded C </li><li>C++ for systems</li><li>Python for automation and tooling</li><li>Verilog / SystemVerilog (RTL, testbenches)</li></ul>
         </div>
         <div class="skills-column">
           <div class="skill-heading"><span>02</span><div><h3>Embedded & RTOS</h3><p>Deterministic firmware and board-level development</p></div></div>
-          <ul><li>FreeRTOS, bare-metal firmware, ISRs, DMA</li><li>Real-time scheduling and multi-threading</li><li>Device drivers: GPIO, SPI, I2C, UART</li><li>Memory-mapped I/O, system bring-up, schematics</li></ul>
+          <ul><li>FreeRTOS, bare-metal firmware, ISRs, DMA</li><li>Real-time scheduling, multi-threading and synchronization</li><li>Device drivers: GPIO, SPI, I2C, UART</li><li>Memory-mapped I/O, system bring-up, schematics</li></ul>
         </div>
         <div class="skills-column">
           <div class="skill-heading"><span>03</span><div><h3>Platforms & Interfaces</h3><p>Hardware bring-up across MCU, SoC, FPGA, and Linux</p></div></div>
@@ -272,7 +280,7 @@
       </div>
 
       <div class="research-group">
-        <h3 class="research-subheading"><span>01</span> Patents</h3>
+        <h3 class="research-subheading">Patents</h3>
         <div class="research-stack">
           <article class="research-item">
             <div class="research-label">Patent</div>
@@ -295,7 +303,7 @@
       </div>
 
       <div class="research-group">
-        <h3 class="research-subheading"><span>02</span> Publications</h3>
+        <h3 class="research-subheading">Publications</h3>
         <article class="research-item publication-feature">
           <div class="research-stats">
             <strong>6+</strong><span>Peer-reviewed<br>IEEE papers</span>
@@ -312,7 +320,7 @@
 
     <!-- Achievements -->
     <section id="achievements" class="section achievements-section">
-      <span class="section-eyebrow">Milestones</span>
+      <!-- <span class="section-eyebrow">Milestones</span> -->
       <h2>Achievements</h2>
       <div class="achievement-stack">
         <article class="achievement-item">
@@ -333,8 +341,8 @@
     <!-- Contact -->
     <section id="contact" class="section contact-section">
       <h2>Contact</h2>
-      <p class="contact-kicker">Have a hard systems problem worth solving?</p>
-      <p class="contact-copy">I enjoy conversations where silicon, firmware, networking, and intelligent systems meet. If you are building ambitious hardware or looking for an embedded engineer who thinks across the stack, let’s connect.</p>
+      <p class="contact-kicker">Got a system that refuses to behave?</p>
+      <p class="contact-copy">I am always up for a conversation where silicon, firmware, and software collide and creates race conditions, timing bugs, weird hardware quirks, or just an ambitious idea that needs someone who thinks across the whole stack. Drop me a line.</p>
       <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=aditya.vmvs%40tamu.edu&amp;su=Let's%20connect" class="gmail-button" target="_blank" rel="noopener noreferrer" aria-label="Compose an email to Aditya in Gmail">
         <span class="gmail-icon">M</span> Reach out via Gmail
       </a>
