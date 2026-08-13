@@ -2,56 +2,173 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Zynq FPGA Hardware/Software Co-Design · Project</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Zynq FPGA hardware/software co-design project using a custom AXI4-Lite peripheral, PetaLinux, and a Linux character driver.">
+  <title>Zynq FPGA Hardware/Software Co-Design · V.M.V.S. Aditya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../project.css">
 </head>
-<body>
-  <main class="section">
-    <a href="../index.html#projects" class="card-link">← Back to projects</a>
+<body class="project-page">
+  <header class="site-header project-header">
+    <a class="project-brand" href="../index.html">V.M.V.S. Aditya</a>
+    <nav class="nav" aria-label="Project navigation">
+      <a href="../index.html#projects">Portfolio</a>
+      <a href="../blogs.html">Blog</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+  </header>
 
-    <h1 style="margin-top:1rem;">Zynq FPGA Hardware/Software Co-Design with Custom AXI Peripheral</h1>
-
-    <!-- Video -->
-    <section style="margin-top:1.5rem;">
-      <h2>Demo video</h2>
-      <div style="margin-top:1rem;">
-        <iframe width="560" height="315"
-                src="https://www.youtube.com/embed/YOUR_VIDEO_ID"
-                title="Zynq co-design demo"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
+  <main>
+    <section class="project-hero">
+      <a href="../index.html#projects" class="project-back">← Back to projects</a>
+      <p class="project-eyebrow">FPGA · Embedded Linux · Hardware/software co-design</p>
+      <h1>Zynq FPGA Hardware/Software Co-Design with a Custom AXI Peripheral</h1>
+      <p class="project-lead">A complete path from custom RTL and memory-mapped registers in programmable logic to a Linux character driver and userspace application on the ARM Cortex-A9.</p>
+      <div class="project-summary" aria-label="Project overview">
+        <div><span>Platform</span><strong>Zynq-7000 SoC</strong></div>
+        <div><span>Interface</span><strong>AXI4-Lite</strong></div>
+        <div><span>Software</span><strong>PetaLinux</strong></div>
+        <div><span>Focus</span><strong>Low-latency I/O</strong></div>
       </div>
     </section>
 
-    <!-- Summary -->
-    <section style="margin-top:2rem;">
-      <h2>Summary</h2>
-      <p style="margin-top:1rem;">
-        This project explores hardware/software co-design on a Zynq SoC by integrating a custom AXI4-Lite
-        peripheral with the ARM Cortex-A9 processing system. The goal is to expose FPGA-accelerated functions
-        through a clean, low-latency interface to Linux userspace.
-      </p>
-      <p style="margin-top:0.8rem;">
-        The design uses memory-mapped I/O and PetaLinux kernel modules with character drivers to validate
-        data flow across AXI interconnects and hardware registers. By offloading compute-intensive work to
-        FPGA logic and partitioning responsibilities across hardware–software boundaries, the system achieves
-        substantially lower execution latency compared to pure software on the Cortex-A9.
-      </p>
-    </section>
+    <div class="project-layout">
+      <aside class="project-directory" aria-label="Project directory">
+        <p>Project directory</p>
+        <nav>
+          <a href="#introduction" class="active">Introduction</a>
+          <a href="#tools">Tools &amp; setup</a>
+          <a href="#details">Project details</a>
+          <a href="#links">Useful links</a>
+          <a href="#repository">Repository</a>
+        </nav>
+      </aside>
 
-    <!-- Repo link -->
-    <section style="margin-top:2rem;">
-      <a class="btn primary" href="https://github.com/AdityaVMVS/YOUR_ZYNQ_PROJECT_REPO" target="_blank">
-        View GitHub repository
-      </a>
-    </section>
+      <article class="project-content">
+        <section id="introduction" class="project-section">
+          <span class="section-number">01</span>
+          <h2>Introduction</h2>
+          <p>This project explores hardware/software partitioning on a Zynq SoC. A custom AXI4-Lite peripheral runs in the FPGA fabric, while the dual-core ARM Cortex-A9 processing system runs embedded Linux. A memory-mapped register interface provides a small and predictable contract between both domains.</p>
+          <p>The hardware is exposed through a kernel module and character device, allowing a normal userspace program to configure the accelerator, submit data, and read results without knowing the physical register addresses. The design demonstrates the full stack: RTL, AXI integration, device tree, kernel driver, and application-level validation.</p>
+          <div class="design-flow" aria-label="System data flow">
+            <span>Linux application</span><i>→</i><span>Character driver</span><i>→</i><span>AXI4-Lite</span><i>→</i><span>Custom FPGA IP</span>
+          </div>
+        </section>
+
+        <section id="tools" class="project-section">
+          <span class="section-number">02</span>
+          <h2>Tools &amp; setup</h2>
+          <p>A compact overview of the software and physical setup used to build, deploy, and validate the design.</p>
+          <h3 class="project-subheading">Software used</h3>
+          <div class="spec-grid">
+            <div><h3>AMD Vivado</h3><p>RTL development, custom IP packaging, block design, synthesis, implementation, and bitstream generation.</p></div>
+            <div><h3>PetaLinux</h3><p>Linux image configuration, device-tree integration, kernel-module recipes, and deployable boot artifacts.</p></div>
+            <div><h3>Verilog / SystemVerilog</h3><p>AXI peripheral logic, control/status registers, and simulation testbenches.</p></div>
+            <div><h3>C and Linux tooling</h3><p>Kernel driver, userspace test application, cross-compilation, serial logging, and register-level validation.</p></div>
+          </div>
+          <h3 class="project-subheading">Hardware used</h3>
+          <div class="hardware-list">
+            <div><span>01</span><p><strong>Zynq-7000 development board</strong> with ARM Cortex-A9 processing system and programmable logic.</p></div>
+            <div><span>02</span><p><strong>JTAG programmer</strong> for bitstream download, bring-up, and hardware debugging.</p></div>
+            <div><span>03</span><p><strong>USB-to-UART connection</strong> for boot logs, Linux console access, and application output.</p></div>
+            <div><span>04</span><p><strong>Linux development host</strong> for Vivado/PetaLinux builds, cross-compilation, and board deployment.</p></div>
+          </div>
+        </section>
+
+        <section id="details" class="project-section project-article">
+          <span class="section-number">03</span>
+          <h2>Project details</h2>
+          <p>The project begins by defining a small register map that acts as the contract between software and hardware. Keeping this interface narrow makes each layer easier to test independently and avoids coupling the Linux application to the accelerator implementation.</p>
+
+          <figure class="project-placeholder wide-placeholder">
+            <div><span>Image placeholder</span><strong>Vivado block design / complete system architecture</strong><small>Replace with a project image and update the caption</small></div>
+            <figcaption>Figure 1. Processing system, AXI interconnect, and custom peripheral.</figcaption>
+          </figure>
+
+          <h3>System flow</h3>
+          <div class="flow-chart" aria-label="Project flow chart">
+            <div><small>01</small><strong>Userspace app</strong><span>Submit input</span></div><i>→</i>
+            <div><small>02</small><strong>Linux driver</strong><span>Validate and map</span></div><i>→</i>
+            <div><small>03</small><strong>AXI4-Lite</strong><span>Register transfer</span></div><i>→</i>
+            <div><small>04</small><strong>FPGA logic</strong><span>Process and respond</span></div>
+          </div>
+
+          <h3>Implementation outline</h3>
+          <ol class="project-steps">
+            <li><div><strong>Define the hardware/software contract</strong><p>Choose control, status, input, and output registers; document offsets, widths, reset values, and access permissions.</p></div></li>
+            <li><div><strong>Implement the custom AXI4-Lite peripheral</strong><p>Create the RTL datapath and register interface, then validate address decoding and read/write responses in simulation.</p></div></li>
+            <li><div><strong>Integrate the Zynq block design</strong><p>Connect the custom IP to the processing system through AXI interconnect, assign an address range, and generate the bitstream.</p></div></li>
+            <li><div><strong>Build the embedded Linux platform</strong><p>Import the hardware description into PetaLinux, configure boot components, and add the peripheral node to the device tree.</p></div></li>
+            <li><div><strong>Develop the kernel driver</strong><p>Map the register region, register a character device, and provide controlled read/write operations to userspace.</p></div></li>
+            <li><div><strong>Validate end-to-end behavior</strong><p>Run known input vectors, compare hardware results against a software reference, and measure transaction latency.</p></div></li>
+          </ol>
+
+          <h3>Register-level communication</h3>
+          <p>The kernel driver maps the physical AXI address range once during probe. All later accesses use Linux I/O helpers so reads and writes preserve the correct device-memory semantics.</p>
+          <div class="code-example">
+            <div class="code-heading"><span>Kernel driver · register access</span><code>C</code></div>
+            <pre><code>#define REG_CONTROL 0x00
+#define REG_INPUT   0x04
+#define REG_OUTPUT  0x08
+
+iowrite32(input_value, regs + REG_INPUT);
+iowrite32(0x1, regs + REG_CONTROL);
+result = ioread32(regs + REG_OUTPUT);</code></pre>
+            <p>The driver uses the kernel I/O helpers instead of directly dereferencing mapped addresses. This preserves the required memory-access semantics when communicating with the AXI peripheral.</p>
+          </div>
+
+          <div class="project-note"><strong>Why a character driver?</strong><p>It provides a familiar file-based interface, isolates privileged register access inside the kernel, and gives the application a clean API that can evolve independently of the RTL register map.</p></div>
+
+          <h3>Userspace interface</h3>
+          <div class="code-example">
+            <div class="code-heading"><span>Userspace · character device</span><code>C</code></div>
+            <pre><code>int fd = open("/dev/zynq_accel", O_RDWR);
+write(fd, &amp;input, sizeof(input));
+read(fd, &amp;result, sizeof(result));
+close(fd);</code></pre>
+            <p>The application interacts with a normal device file. Hardware addresses and synchronization remain encapsulated inside the driver, keeping the userspace interface small and portable.</p>
+          </div>
+
+          <h3>Validation checklist</h3>
+          <ul class="detail-list">
+            <li>Verify register reset values before the first transaction.</li>
+            <li>Test boundary values and invalid control combinations.</li>
+            <li>Compare FPGA output with a known-good software implementation.</li>
+            <li>Capture AXI transactions with an Integrated Logic Analyzer when debugging.</li>
+            <li>Measure repeated transfers to identify software and hardware latency.</li>
+          </ul>
+
+          <div class="placeholder-grid">
+            <figure class="project-placeholder"><div><span>Image placeholder</span><strong>ILA waveform or simulation</strong></div><figcaption>Figure 2. AXI write and read transaction.</figcaption></figure>
+            <figure class="project-placeholder"><div><span>Image placeholder</span><strong>Hardware setup or terminal output</strong></div><figcaption>Figure 3. End-to-end validation on the board.</figcaption></figure>
+          </div>
+        </section>
+
+        <section id="links" class="project-section">
+          <span class="section-number">04</span>
+          <h2>Useful links</h2>
+          <div class="resource-list">
+            <a href="https://docs.amd.com/r/en-US/ug585-zynq-7000-SoC-TRM/AXI-Interface-Operation" target="_blank" rel="noopener noreferrer"><span>AMD documentation</span><strong>Zynq-7000 AXI interface operation</strong><b>↗</b></a>
+            <a href="https://docs.amd.com/r/en-US/Zynq-7000-Embedded-Design-Tutorial-UG1165/PetaLinux-Tools" target="_blank" rel="noopener noreferrer"><span>AMD tutorial</span><strong>Zynq-7000 embedded design with PetaLinux</strong><b>↗</b></a>
+            <a href="https://docs.amd.com/r/en-US/ug1144-petalinux-tools-reference-guide" target="_blank" rel="noopener noreferrer"><span>AMD reference</span><strong>PetaLinux Tools Reference Guide</strong><b>↗</b></a>
+            <a href="https://docs.kernel.org/driver-api/index.html" target="_blank" rel="noopener noreferrer"><span>Linux documentation</span><strong>Driver implementer’s API guide</strong><b>↗</b></a>
+          </div>
+        </section>
+
+        <section id="repository" class="project-section repository-section">
+          <span class="section-number">05</span>
+          <h2>Explore the implementation</h2>
+          <p>Browse my GitHub repositories for source code, hardware design files, driver implementation, and project updates.</p>
+          <a class="repo-button" href="https://github.com/AdityaVMVS?tab=repositories" target="_blank" rel="noopener noreferrer">View repositories on GitHub <span>↗</span></a>
+        </section>
+      </article>
+    </div>
   </main>
 
-  <footer class="footer">
-    <p>© 2026 · V.M.V.S. Aditya · Semiconductor & Embedded Portfolio</p>
-  </footer>
+  <footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Semiconductor &amp; Embedded Portfolio</p></footer>
+  <script src="../project.js"></script>
 </body>
 </html>

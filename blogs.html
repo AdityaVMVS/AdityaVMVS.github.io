@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Technical writing by V.M.V.S. Aditya on computer architecture, operating systems, RTOS, machine learning, and embedded systems.">
+  <title>Engineering Notes · V.M.V.S. Aditya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="blog.css">
+</head>
+<body class="blog-page">
+  <header class="site-header blog-header">
+    <a class="blog-brand" href="index.html">V.M.V.S. Aditya</a>
+    <nav class="nav" aria-label="Blog navigation">
+      <a href="index.html">Portfolio</a>
+      <a href="blogs.html" aria-current="page">Blog</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="blog-hero">
+      <p class="blog-eyebrow">Engineering notes</p>
+      <h1>Ideas, internals, and lessons<br>from building real systems.</h1>
+      <p>Practical guides and deep dives across embedded software, computer architecture, operating systems, RTOS, machine learning, and technical interviews.</p>
+    </section>
+
+    <div class="blog-layout">
+      <aside class="blog-sidebar" aria-label="Blog categories">
+        <p class="sidebar-title">Explore topics</p>
+        <nav class="filter-list">
+          <button class="filter-button active" type="button" data-filter="latest">Latest blogs <span>All</span></button>
+          <button class="filter-button" type="button" data-filter="interview-prep">Interview prep guide</button>
+          <button class="filter-button" type="button" data-filter="computer-architecture">Computer architecture</button>
+          <button class="filter-button" type="button" data-filter="operating-systems">Operating systems</button>
+          <button class="filter-button" type="button" data-filter="rtos">RTOS</button>
+          <button class="filter-button" type="button" data-filter="machine-learning">Machine learning</button>
+          <button class="filter-button" type="button" data-filter="embedded-systems">Embedded systems</button>
+        </nav>
+      </aside>
+
+      <section class="blog-feed" aria-live="polite">
+        <div class="feed-heading">
+          <div><p class="blog-eyebrow">Browse the archive</p><h2 id="feed-title">Latest blogs</h2></div>
+          <p id="post-count"></p>
+        </div>
+
+        <!-- To add a post: copy an article, update its date/content, and list one or more sidebar tag values in data-tags. -->
+        <div class="post-list" id="post-list">
+          <article class="post-card" data-tags="embedded-systems,interview-prep" data-date="2026-08-10">
+            <time datetime="2026-08-10">August 10, 2026</time>
+            <div class="post-content"><div class="post-tags"><span>Embedded Systems</span><span>Interview Prep</span></div><h3><a href="blog-template.html">How to Think Through an Embedded Systems Interview</a></h3><p>A structured way to discuss interrupts, memory, concurrency, buses, and debugging without relying on memorized answers.</p><a class="read-post" href="blog-template.html">Read article →</a></div>
+          </article>
+          <article class="post-card" data-tags="computer-architecture" data-date="2026-07-22">
+            <time datetime="2026-07-22">July 22, 2026</time>
+            <div class="post-content"><div class="post-tags"><span>Computer Architecture</span></div><h3><a href="blog-template.html">Cache Replacement Policies: From LRU to Prediction</a></h3><p>An intuitive tour of locality, recency-based policies, re-reference prediction, and how to evaluate a new cache policy.</p><a class="read-post" href="blog-template.html">Read article →</a></div>
+          </article>
+          <article class="post-card" data-tags="operating-systems,computer-architecture" data-date="2026-06-30">
+            <time datetime="2026-06-30">June 30, 2026</time>
+            <div class="post-content"><div class="post-tags"><span>Operating Systems</span><span>Computer Architecture</span></div><h3><a href="blog-template.html">Demand Paging, Page Faults, and the TLB</a></h3><p>Following a memory access through page tables, faults, replacement, and TLB invalidation from a kernel builder’s perspective.</p><a class="read-post" href="blog-template.html">Read article →</a></div>
+          </article>
+          <article class="post-card" data-tags="rtos,embedded-systems" data-date="2026-05-18">
+            <time datetime="2026-05-18">May 18, 2026</time>
+            <div class="post-content"><div class="post-tags"><span>RTOS</span><span>Embedded Systems</span></div><h3><a href="blog-template.html">Designing Deterministic FreeRTOS Tasks</a></h3><p>Practical scheduling, synchronization, and buffer-design choices for stable real-time behavior under sustained load.</p><a class="read-post" href="blog-template.html">Read article →</a></div>
+          </article>
+          <article class="post-card" data-tags="machine-learning,embedded-systems" data-date="2026-04-09">
+            <time datetime="2026-04-09">April 9, 2026</time>
+            <div class="post-content"><div class="post-tags"><span>Machine Learning</span><span>Embedded Systems</span></div><h3><a href="blog-template.html">Taking a TinyML Model from Notebook to MCU</a></h3><p>A deployment checklist covering model size, quantization, memory planning, timing, telemetry, and on-device validation.</p><a class="read-post" href="blog-template.html">Read article →</a></div>
+          </article>
+        </div>
+        <div class="empty-state" id="empty-state" hidden>No posts have been published in this topic yet.</div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Engineering Notes</p></footer>
+  <script src="blog.js"></script>
+</body>
+</html>
