@@ -84,6 +84,45 @@
 .repo-button { display: inline-flex; gap: .75rem; align-items: center; margin-top: .8rem; padding: .75rem 1rem; color: #061018; font-size: .83rem; font-weight: 700; background: #67e8f9; border-radius: .35rem; }
 .repo-button:hover { background: #a5f3fc; text-decoration: none; }
 
+html[data-theme="light"] .project-page { background: #f6f8fc; }
+html[data-theme="light"] .project-brand,
+html[data-theme="light"] .project-hero h1,
+html[data-theme="light"] .project-section h2,
+html[data-theme="light"] .project-subheading,
+html[data-theme="light"] .project-article > h3,
+html[data-theme="light"] .spec-grid h3,
+html[data-theme="light"] .hardware-list strong,
+html[data-theme="light"] .flow-chart strong,
+html[data-theme="light"] .project-note strong,
+html[data-theme="light"] .resource-list strong,
+html[data-theme="light"] .project-steps strong { color: #172033; }
+html[data-theme="light"] .project-lead,
+html[data-theme="light"] .project-section > p,
+html[data-theme="light"] .project-article > p,
+html[data-theme="light"] .spec-grid p,
+html[data-theme="light"] .hardware-list p,
+html[data-theme="light"] .project-note p,
+html[data-theme="light"] .detail-list li,
+html[data-theme="light"] .project-steps p { color: #526174; }
+html[data-theme="light"] .project-summary { background: #d9e1ec; border-color: #d9e1ec; }
+html[data-theme="light"] .project-summary div,
+html[data-theme="light"] .spec-grid div,
+html[data-theme="light"] .flow-chart > div,
+html[data-theme="light"] .design-flow,
+html[data-theme="light"] .project-placeholder > div { background: #fff; border-color: #d5deea; }
+html[data-theme="light"] .project-summary strong,
+html[data-theme="light"] .design-flow span,
+html[data-theme="light"] .project-placeholder strong { color: #334155; }
+html[data-theme="light"] .design-flow span { border-color: #cbd5e1; }
+html[data-theme="light"] .project-directory a { color: #627188; border-color: #cbd5e1; }
+html[data-theme="light"] .project-directory a:hover,
+html[data-theme="light"] .project-directory a.active { color: #075d75; }
+html[data-theme="light"] .project-steps li::before { color: #087ea4; background: #eaf8fc; }
+html[data-theme="light"] .project-steps li:not(:last-child)::after { background: #cad6e3; }
+html[data-theme="light"] .code-example { background: #172033; border-color: #314158; }
+html[data-theme="light"] .code-heading { color: #d7e1ec; background: #223047; border-color: #3b4b62; }
+html[data-theme="light"] .repository-section { background: radial-gradient(circle at top right, rgba(0, 174, 214, .12), transparent 55%), #fff; }
+
 @media (max-width: 760px) {
   .project-hero { padding-top: 4.5rem; }
   .project-summary { grid-template-columns: repeat(2, 1fr); }

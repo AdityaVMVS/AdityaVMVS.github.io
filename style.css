@@ -779,6 +779,67 @@ a:hover {
   height: 20px;
 }
 
+/* Shared light and dark appearance control */
+.theme-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .45rem;
+  margin-left: .65rem;
+  padding: .42rem .72rem;
+  color: #dce7f3;
+  font: 600 .76rem 'Montserrat', sans-serif;
+  background: rgba(15, 23, 42, .72);
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.theme-toggle:hover { transform: translateY(-1px); color: #050609; background: #67e8f9; border-color: #67e8f9; }
+.theme-toggle-icon { font-size: .95rem; line-height: 1; }
+
+html[data-theme="light"] body { background-color: #f6f8fc; color: #172033; }
+html[data-theme="light"] .site-header { background: rgba(255, 255, 255, .9); border-bottom-color: #d9e1ec; }
+html[data-theme="light"] .nav a { color: #334155; }
+html[data-theme="light"] .nav a:hover { color: #071018; }
+html[data-theme="light"] .theme-toggle { color: #1e3a4a; background: #e8f7fc; border-color: #a8ddeb; }
+html[data-theme="light"] .section h2,
+html[data-theme="light"] .education-heading h3,
+html[data-theme="light"] .skill-heading h3,
+html[data-theme="light"] .research-subheading,
+html[data-theme="light"] .research-item h4,
+html[data-theme="light"] .achievement-item h3,
+html[data-theme="light"] .contact-kicker { color: #132033 !important; }
+html[data-theme="light"] .section p,
+html[data-theme="light"] .research-heading > p,
+html[data-theme="light"] .achievement-item p,
+html[data-theme="light"] .contact-copy { color: #526174 !important; }
+html[data-theme="light"] .education-entry,
+html[data-theme="light"] .skills-column,
+html[data-theme="light"] .card,
+html[data-theme="light"] .research-item,
+html[data-theme="light"] .achievement-item,
+html[data-theme="light"] .contact-section { background: #ffffff; border-color: #dce4ee; box-shadow: 0 12px 34px rgba(31, 50, 74, .06); }
+html[data-theme="light"] .research-item:hover,
+html[data-theme="light"] .skills-column:hover { background: #f7fbfd; border-color: rgba(8, 145, 178, .38); }
+html[data-theme="light"] .skills-column li,
+html[data-theme="light"] .coursework li { color: #475569; background: #f5f8fc; border-color: #dce4ee; }
+html[data-theme="light"] .footer { color: #66758a; border-top-color: #d9e1ec; }
+html[data-theme="light"] .hero-overlay {
+  background:
+    linear-gradient(90deg, rgba(246, 249, 252, .78), rgba(246, 249, 252, .62) 58%, rgba(246, 249, 252, .76)),
+    linear-gradient(0deg, rgba(246, 249, 252, .72), rgba(246, 249, 252, .18) 48%, rgba(246, 249, 252, .35));
+}
+html[data-theme="light"] .hero-text { text-shadow: 0 1px 8px rgba(255, 255, 255, .88); }
+html[data-theme="light"] .hero-text h1 { color: #101827; text-shadow: 0 2px 12px rgba(255, 255, 255, .94); }
+html[data-theme="light"] .hero-text h1 span { color: #087ea4; }
+html[data-theme="light"] .hero-description,
+html[data-theme="light"] .hero-location { color: #445269; }
+html[data-theme="light"] .hero-tagline { color: #087ea4; }
+html[data-theme="light"] .btn.secondary { color: #203047; background: rgba(255, 255, 255, .82); border-color: #cbd5e1; box-shadow: 0 10px 25px rgba(31, 50, 74, .12); }
+html[data-theme="light"] .gmail-button { color: #f8fafc; background: #172033; }
+
 /* Responsiveness */
 @media (max-width: 768px) {
   .hero-inner {
@@ -798,6 +859,12 @@ a:hover {
   .site-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .theme-toggle {
+    position: absolute;
+    top: .72rem;
+    right: 1rem;
   }
 
   .nav {
