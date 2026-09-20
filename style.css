@@ -722,6 +722,9 @@ a:hover {
 .research-label { align-self: start; color: #67e8f9; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
 .research-item h4 { margin-bottom: .45rem; color: #f8fafc; font-size: 1.12rem; }
 .research-item p { max-width: 760px; margin-bottom: .7rem; }
+.research-item .patent-number { margin: -.1rem 0 .65rem; color: #67e8f9; font-family: 'Space Grotesk', sans-serif; font-size: .82rem; font-weight: 600; letter-spacing: .04em; }
+.research-group .patent-search-note { margin: .85rem 0 0; color: #94a3b8; font-size: .78rem; line-height: 1.6; }
+.patent-search-note a { color: #67e8f9; }
 .publication-feature { grid-template-columns: minmax(280px, .7fr) 1fr; align-items: center; border-left-color: #a78bfa; }
 .research-stats { display: grid; grid-template-columns: auto 1fr; gap: .35rem .8rem; align-items: center; }
 .research-stats strong { color: #67e8f9; font-family: 'Space Grotesk', sans-serif; font-size: 2.2rem; line-height: 1; }

@@ -131,8 +131,19 @@
            + (table_index * 4)      -&gt; page-table entry</code></pre>
           </div>
 
+          <p>The diagram below shows why moving paging structures matters. The small directly mapped kernel pool remains available for core kernel data, while page-table frames for separate address spaces can come from the much larger freely mapped process pool.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/x86-kernel/page-table-memory-layout.jpg" alt="Diagram showing the directly mapped kernel pool from 2 MB to 4 MB and page-table frames for two processes allocated from freely mapped process memory above 4 MB" loading="lazy">
+            <figcaption>Page-table frames move out of the limited directly mapped kernel pool and into freely mapped process memory.</figcaption>
+          </figure>
+
           <h3>What this unlocks</h3>
           <p>With this trick in place, page-directory and page-table frames can be pulled from the large process pool instead of the cramped kernel pool, so the amount of virtual memory the kernel can manage is no longer bottlenecked by a 2 MB identity-mapped region. This is what makes the earlier sections - frame allocation, demand paging, VM-pool validation - actually usable at any meaningful scale instead of just as a proof of concept.</p>
+          <p>The QEMU run below verifies the combined path. The kernel initializes both frame pools, constructs a recursively mapped page table, enables paging, handles demand-page faults, writes through the new mappings, and reaches the final passing check.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/x86-kernel/recursive-demand-paging-test.png" alt="QEMU terminal output showing frame-pool initialization, recursive page-table construction, demand-page fault handling, and a passing memory test" loading="lazy">
+            <figcaption>Recursive page-table and demand-paging validation in QEMU, ending with the memory test passing.</figcaption>
+          </figure>
 
           <h3>Why this alone is not enough</h3>
           <p>Everything up to this point solves one problem: giving a single flow of execution a safe, scalable, protected view of memory. But a kernel that can only ever run one thing at a time from start to finish is not very useful. The moment memory management can hand out independent stacks and independent address ranges reliably, the natural next question is: can more than one independent computation run using that memory? The early, primitive answer - have each routine explicitly call the next one by name when it's willing to give up the CPU - technically works, but it means every routine has to know about every other routine, and it collapses the instant a third, fourth, or blocked routine is added. That coupling is exactly what a scheduler removes.</p>
@@ -153,6 +164,11 @@
             <li><div><strong>Terminate safely</strong><p>A thread whose function returns cannot free the stack it is still standing on, so cleanup is deferred until another thread can safely reclaim its resources.</p></div></li>
           </ol>
           <p>That last point is a real problem, not a footnote: a thread cannot deallocate the memory it is currently executing on top of. The practical answer is the same one many real kernels use - park the finished thread somewhere (a "zombie" state) and let a different execution context perform the actual cleanup later.</p>
+          <p>The scheduler trace shows the ready queue in operation. Four threads are created and admitted, then the first thread begins its burst while later context switches rotate execution through the remaining queue.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/x86-kernel/fifo-scheduler-test.png" alt="Kernel terminal output showing four threads created, added to the FIFO ready queue, and the first thread beginning execution" loading="lazy">
+            <figcaption>FIFO scheduler validation: four kernel threads enter the ready queue before execution begins.</figcaption>
+          </figure>
 
           <h3>Why this alone is not enough</h3>
           <p>A working scheduler means the kernel finally has more than one piece of runnable work in flight, and CPU time is now a resource worth protecting. That exposes an existing waste that didn't matter before: the disk driver's wait loop polls the hardware in a tight busy-loop until the disk is ready, holding the entire CPU hostage for however long a mechanical disk operation takes. With only one thread ever running, that was merely slow. With a ready queue full of other runnable threads, it is a bottleneck the scheduler was specifically built to prevent - so the scheduler's first real job is fixing the disk driver.</p>
@@ -167,6 +183,11 @@
           <h3>What <code>NonBlockingDisk</code> does differently</h3>
           <p><code>NonBlockingDisk</code> is derived from <code>SimpleDisk</code> and overrides exactly the wait behavior: instead of spinning, the calling thread yields the CPU back to the scheduler and rechecks the device's status the next time it gets scheduled. From the caller's point of view, <code>read()</code> and <code>write()</code> still look like ordinary synchronous calls - the API doesn't change - but the CPU is no longer wasted while the hardware catches up. This is precisely why the scheduler had to exist first: yielding is meaningless if there is no ready queue and no other thread for the CPU to run in the meantime.</p>
           <div class="design-flow"><span>Issue ATA request</span><i>&rarr;</i><span>Device busy</span><i>&rarr;</i><span>Yield CPU</span><i>&rarr;</i><span>Recheck status</span><i>&rarr;</i><span>Transfer 512-byte block</span></div>
+          <p>The trace makes that interaction visible. Thread 2 starts a block read, returns control through the ready queue while the device is unavailable, and Thread 3 runs instead of leaving the processor inside a polling loop.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/x86-kernel/scheduler-aware-disk-test.png" alt="Kernel terminal output showing a thread reading a disk block, yielding through the ready queue, and another thread running while the operation waits" loading="lazy">
+            <figcaption>Scheduler-aware disk wait: the reading thread yields and another ready thread continues execution.</figcaption>
+          </figure>
 
           <h3>Why this alone is not enough</h3>
           <p>A non-blocking disk driver makes block transfers cheap to perform, but a "block" is still just an anonymous 512-byte slot identified by a number. It has no name, no owner, no recorded length, and nothing tracking which blocks are free versus in use. Reading and writing raw blocks efficiently is necessary but not sufficient for anything a program would recognize as a "file." The last layer turns that raw block interface into named, persistent storage.</p>
@@ -188,6 +209,11 @@
           </div>
           <p>Limiting every file to a single 512-byte block is a deliberate simplification, not a shortcut around the hard part: it removes multi-block allocation bookkeeping while still exercising the entire persistence path end to end - formatting writes empty inode and free-block metadata, mounting reads it back, creating a file reserves an inode and a block, closing writes the cache back to disk, reopening recovers the exact bytes, and deleting returns the block to the free list.</p>
           <p>This closes the loop the whole project has been building toward: a file operation issued at the very top of the kernel now travels down through the file system into a block request, through the non-blocking disk driver (which can yield the CPU without stalling the system), through the scheduler (which has other threads ready to run in the meantime), and - for the in-memory pieces along the way - through the paging and frame-allocation machinery that made it possible to hand out that memory safely in the first place.</p>
+          <p>The final test creates two files, closes and reopens them, reads their contents back, deletes both files, and confirms that the complete file-system exercise succeeds.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/x86-kernel/file-system-validation.png" alt="QEMU terminal output showing two files reopened, read successfully, deleted, and the file-system validation completing successfully" loading="lazy">
+            <figcaption>End-to-end file-system validation, including reopen, readback, deletion, and the final success message.</figcaption>
+          </figure>
         </section>
 
         <section id="validation" class="project-section">
@@ -218,8 +244,8 @@
         <section id="repository" class="project-section repository-section">
           <span class="section-number">11</span>
           <h2>Explore the implementation</h2>
-          <p>Browse my GitHub repositories for this kernel and related low-level systems work.</p>
-          <a class="repo-button" href="https://github.com/AdityaVMVS?tab=repositories" target="_blank" rel="noopener noreferrer">View repositories on GitHub <span>&nearr;</span></a>
+          <p>Browse the complete source code for the x86 kernel project on GitHub.</p>
+          <a class="repo-button" href="https://github.com/AdityaVMVS/x86-Kernel-Internals-Project" target="_blank" rel="noopener noreferrer">View project on GitHub <span>&nearr;</span></a>
         </section>
       </article>
     </div>

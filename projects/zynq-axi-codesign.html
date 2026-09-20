@@ -81,10 +81,10 @@
         <section id="details" class="project-section project-article">
           <span class="section-number">03</span>
           <h2>Project details</h2>
-          <p>The sections below follow the project in the order it was actually built: the register interface first, then a bare-metal test to prove the hardware works in isolation, then a full embedded Linux system, and finally a kernel driver that makes the peripheral usable like any other Linux device. Each stage lists the concrete steps taken in the tool, how the result was verified, and what was observed on the board.</p>
+          <p>The project followed one signal path from the FPGA fabric to a Linux application. I first needed a small and predictable hardware interface. Once that interface existed, I tested it without an operating system so hardware problems would be easy to isolate. Only after the peripheral worked on its own did I bring up Linux, prove that kernel code could reach the same registers, expose them through a character device, and finally integrate the driver into the kernel. Each step answered one question and created the reason for the next step.</p>
 
-          <h3>3.1 Hardware design in Vivado</h3>
-          <p>The goal of this stage was to create a minimal, well defined AXI4-Lite peripheral and connect it correctly to the Zynq Processing System (PS).</p>
+          <h3>3.1 Start with a clear hardware interface</h3>
+          <p>The ARM processor and FPGA fabric needed a simple contract before any software could be written. I defined that contract as three memory mapped 32-bit registers over AXI4-Lite. Software writes two operands into <code>slv_reg0</code> and <code>slv_reg1</code>, while the hardware places their product in the read-only <code>slv_reg2</code>. Keeping the interface this small made every later layer easier to understand and test.</p>
           <ol class="project-steps">
             <li><div><strong>Create the project and add the PS</strong><p>Started a new Vivado RTL project targeting the ZYBO Z7-10 device (xc7z010clg400-1), opened IP Integrator, created a Block Design, and added the ZYNQ7 Processing System block.</p></div></li>
             <li><div><strong>Apply the board preset</strong><p>Applied the ZYBO Z7 B2.tcl configuration preset, then in the Peripheral I/O Pins tab enabled UART 1 for serial communication and unchecked all other unused peripheral I/O pins, keeping the PS configuration minimal.</p></div></li>
@@ -93,15 +93,11 @@
             <li><div><strong>Verify the address map</strong><p>Opened the Address Editor and confirmed the multiply IP received a unique, non-overlapping memory-mapped address range, since this address is what both Vitis and the Linux driver later use to reach the registers.</p></div></li>
             <li><div><strong>Validate, generate, and export</strong><p>Ran Validate Design to catch any connection or addressing errors, generated the HDL wrapper, generated the bitstream, and exported the hardware platform as an XSA file with the bitstream included, so it could be consumed by both Vitis and PetaLinux.</p></div></li>
           </ol>
-          <p><strong>How this was verified:</strong> Vivado's own design validation and implementation reports were used to confirm there were no unconnected pins, address conflicts, or timing failures before exporting hardware. Real functional verification of the register logic itself happened one stage later, in Vitis.</p>
+          <p><strong>How this was verified:</strong> Vivado's design validation and implementation reports confirmed that the connections were complete, the address range did not overlap another device, and timing passed. The resulting XSA described both the processing system and the new peripheral.</p>
+          <p>This proved that the design could be built, but it did not prove that the processor could write the registers or receive the correct result. The next step was therefore a direct bare-metal test with as little software between the ARM core and the peripheral as possible.</p>
 
-          <figure class="project-placeholder wide-placeholder">
-            <div><span>Image placeholder</span><strong>Vivado block design with the custom multiply AXI4-Lite IP connected to the Zynq PS</strong><small>Replace with a screenshot of the completed block design and update the caption</small></div>
-            <figcaption>Figure 1. Zynq Processing System, AXI interconnect, and the custom multiply peripheral (slv_reg0, slv_reg1, slv_reg2).</figcaption>
-          </figure>
-
-          <h3>3.2 Bare-metal verification in Vitis</h3>
-          <p>Before involving Linux at all, the peripheral was exercised directly from bare-metal C code so that any problem could be isolated to the hardware design rather than the software stack.</p>
+          <h3>3.2 Prove the data path without Linux</h3>
+          <p>I used Vitis to exercise the exported hardware directly from bare-metal C. This kept page tables, drivers, system calls, and userspace out of the test. If a value was wrong, the problem had to be in the register offsets, AXI connection, or multiplier logic rather than somewhere inside a Linux software stack.</p>
           <ol class="project-steps">
             <li><div><strong>Create the application project</strong><p>In Vitis, created a new application project from the XSA exported by Vivado, chose the standalone application flow, and confirmed UART output was routed to the console.</p></div></li>
             <li><div><strong>Read the base address</strong><p>Located the base address of the multiply IP in the generated <code>xparameters.h</code> as <code>XPAR_MULTIPLY_0_S00_AXI_BASEADDR</code>.</p></div></li>
@@ -122,15 +118,15 @@ for (a = 0; a &lt;= 16; a++) {
 }</code></pre>
           </div>
           <p><strong>How this was verified:</strong> A terminal window running <code>picocom</code> was attached to the board's UART. Every printed line showed the two operand values and the register-read product side by side, so a mismatch would have been immediately visible.</p>
-          <p><strong>What was observed:</strong> The value read back from <code>slv_reg2</code> matched the expected product for every tested pair, for example <code>slv_reg0 = 16, slv_reg1 = 16, slv_reg2 = 256</code>. This confirmed the AXI4-Lite register mapping and the multiplication logic were both correct before any Linux software was introduced.</p>
-
-          <figure class="project-placeholder">
-            <div><span>Image placeholder</span><strong>picocom output listing slv_reg0, slv_reg1, slv_reg2 for each operand pair</strong></div>
-            <figcaption>Figure 2. Bare-metal Vitis verification of the multiply IP over UART, showing correct products through slv_reg0 = 16, slv_reg1 = 16, slv_reg2 = 256.</figcaption>
+          <p><strong>What was observed:</strong> The value read back from <code>slv_reg2</code> matched the expected product for every tested pair. For example, operands 16 and 16 produced 256. The test confirmed that the ARM core could reach the assigned AXI address, that all three offsets were correct, and that the RTL produced the expected result.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/zynq-codesign/bare-metal-multiplier-test.png" alt="Terminal output from the Vitis bare-metal test showing multiplier register values and the final result 16 times 16 equals 256" loading="lazy">
+            <figcaption>Bare-metal validation over UART. The complete operand sweep finishes with the expected result of 256 for 16 times 16.</figcaption>
           </figure>
+          <p>The hardware path was now known to work. Bare-metal code was useful for proof, but the final goal was to make the accelerator available to a normal Linux application. That required a Linux image built from the same hardware description.</p>
 
-          <h3>3.3 Building the embedded Linux platform with PetaLinux</h3>
-          <p>With the hardware proven, the same XSA was used to bring up a full Linux system on the board, which is the platform the eventual character driver would run on.</p>
+          <h3>3.3 Bring up Linux on the proven hardware</h3>
+          <p>I used the same XSA to create a PetaLinux system for the ZYBO board. Reusing the exported platform kept the Linux build tied to the exact processor configuration, address map, and bitstream already verified in Vitis. The immediate goal was not yet to access the multiplier. It was to establish a stable bootloader, kernel, root file system, and serial console on which a driver could run.</p>
           <ol class="project-steps">
             <li><div><strong>Install and source PetaLinux</strong><p>Installed PetaLinux into a working directory and sourced the PetaLinux environment before creating a project.</p></div></li>
             <li><div><strong>Create and configure the project</strong><p>Created a new PetaLinux project from the Zynq template, then ran <code>petalinux-config</code> with the exported XSA to pull in the hardware description from Vivado.</p></div></li>
@@ -140,15 +136,15 @@ for (a = 0; a &lt;= 16; a++) {
             <li><div><strong>Boot the board</strong><p>Set the ZYBO Z7-10 boot mode jumper (JP5) to SD, connected over USB, opened <code>picocom</code> at 115200 baud, inserted the SD card, and reset the board to observe the boot sequence.</p></div></li>
           </ol>
           <p><strong>How this was verified:</strong> The full Linux boot log was watched live in <code>picocom</code>, followed by an interactive login as user <code>petalinux</code> and an elevation to root with <code>sudo su</code>.</p>
-          <p><strong>What was observed:</strong> Linux booted cleanly to a login prompt, login as <code>petalinux</code> succeeded (with a forced password change on first login), and <code>sudo su</code> correctly elevated to root, confirming the hardware platform, bootloader chain, and kernel were all working together on the board.</p>
-
-          <figure class="project-placeholder">
-            <div><span>Image placeholder</span><strong>picocom terminal showing PetaLinux boot log, login prompt, and successful root login</strong></div>
-            <figcaption>Figure 3. Linux boot sequence on the ZYBO Z7-10, ending in a successful login and sudo su.</figcaption>
+          <p><strong>What was observed:</strong> Linux booted cleanly to a login prompt. Login as <code>petalinux</code> succeeded, including the required password change, and <code>sudo su</code> provided root access. This confirmed that the hardware platform, bootloader, kernel, root file system, SD card, and UART console were working together.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/zynq-codesign/petalinux-login.png" alt="PetaLinux serial console showing a successful boot, petalinux login, and root shell on the ZYBO board" loading="lazy">
+            <figcaption>PetaLinux reaches an interactive login and root shell through the board's serial console.</figcaption>
           </figure>
+          <p>A successful boot established the software platform, but Linux still had no interface to the custom registers. Before designing a userspace API, I needed to answer a smaller question: could kernel code map the peripheral's physical address and perform the same transaction that worked in bare-metal C?</p>
 
-          <h3>3.4 Prototyping kernel-space access with loadable modules</h3>
-          <p>Before writing a full character driver, a small loadable kernel module was used to confirm that the peripheral could be reached correctly from kernel space using virtual memory mapping.</p>
+          <h3>3.4 Reach the peripheral from kernel space</h3>
+          <p>Linux kernel code cannot safely use the peripheral's physical address as a normal pointer. I created a small loadable module to map that address with <code>ioremap()</code>, perform controlled register reads and writes, and release the mapping during cleanup. A separate hello module first checked the basic build, load, and unload workflow so deployment issues would not be confused with hardware-access issues.</p>
           <ol class="project-steps">
             <li><div><strong>Create the modules</strong><p>Used <code>petalinux-create -t modules --name hello --enable</code> for a simple lifecycle test module, and a second module named <code>multiply</code> for the actual hardware access.</p></div></li>
             <li><div><strong>Add hardware headers</strong><p>Added <code>xparameters.h</code> and <code>xparameters_ps.h</code> as dependencies in the <code>multiply.bb</code> recipe so the module could reference the peripheral's physical base address.</p></div></li>
@@ -156,15 +152,15 @@ for (a = 0; a &lt;= 16; a++) {
             <li><div><strong>Build and load</strong><p>Built both modules with <code>petalinux-build</code>, copied the resulting <code>.ko</code> files to the SD card, mounted the SD card on the running board, and loaded the modules with <code>insmod hello.ko</code> followed by <code>insmod multiply.ko</code>.</p></div></li>
           </ol>
           <p><strong>How this was verified:</strong> Kernel log output was checked with <code>dmesg | tail</code>, and loaded modules were confirmed with <code>lsmod</code>.</p>
-          <p><strong>What was observed:</strong> The <code>hello</code> module printed its initialization message, confirming correct module lifecycle behavior. The <code>multiply</code> module printed the physical and virtual addresses from <code>ioremap()</code>, then wrote 7 to register 0 and 2 to register 1, and the kernel log showed 14 read back from register 2, matching 7 times 2 and confirming that memory mapped I/O from kernel space worked correctly.</p>
-
-          <figure class="project-placeholder">
-            <div><span>Image placeholder</span><strong>picocom output showing insmod of hello.ko and multiply.ko with dmesg confirming the multiplication result</strong></div>
-            <figcaption>Figure 4. Kernel log after loading both modules: mapped virtual address, register writes of 7 and 2, and a correct read of 14 from register 2.</figcaption>
+          <p><strong>What was observed:</strong> The <code>hello</code> module printed its initialization message, which confirmed the module workflow. The <code>multiply</code> module then logged the physical and mapped virtual addresses, wrote 7 and 2 to the input registers, and read 14 from the result register. The same peripheral that worked in bare-metal code was now accessible through Linux memory mapped I/O.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/zynq-codesign/kernel-module-mmio-test.png" alt="Kernel console output showing the multiplier module mapping its physical address, writing operands 7 and 2, and reading result 14" loading="lazy">
+            <figcaption>The loadable kernel module maps the AXI peripheral, writes both operands, and reads the correct product from the hardware.</figcaption>
           </figure>
+          <p>This prototype proved kernel access, but it performed one fixed calculation during module initialization. A real application needs to choose operands at runtime without loading a new module or calling kernel functions directly. The next step was to turn the prototype into a character device with a stable file interface.</p>
 
-          <h3>3.5 Writing the character driver and the devtest application</h3>
-          <p>The loadable prototype was then rebuilt into a real Linux character device so a normal userspace program could talk to the hardware through the standard file API instead of raw kernel calls.</p>
+          <h3>3.5 Give userspace a standard device interface</h3>
+          <p>I kept the working register mapping and added a character driver around it. The driver presents the accelerator as <code>/dev/multiplier</code>, so a normal program can use <code>open()</code>, <code>write()</code>, <code>read()</code>, and <code>close()</code>. Userspace no longer needs to know the AXI base address or access physical memory. It only needs to follow the byte layout defined by the device interface.</p>
           <ol class="project-steps">
             <li><div><strong>Map memory and register the device</strong><p>In the module's <code>init</code> function, mapped the physical register range with <code>ioremap()</code>, then registered a character device named <code>multiplier</code> with <code>register_chrdev(0, "multiplier", &amp;fops)</code>, letting the kernel assign a dynamic major number, and registered the device only after the mapping succeeded so no partially initialized state could be exposed to userspace.</p></div></li>
             <li><div><strong>Implement file operations</strong><p>Implemented <code>device_open</code> and <code>device_release</code> for lifecycle logging, <code>device_write</code> to accept up to 8 bytes from userspace (operand A in bytes 0 to 3, operand B in bytes 4 to 7) and write them into the peripheral with <code>iowrite8</code>, and <code>device_read</code> to return up to 12 bytes (operand A, operand B, and the product in bytes 8 to 11) using <code>ioread8</code>, moving data safely across the user and kernel boundary with <code>get_user</code> and <code>put_user</code>.</p></div></li>
@@ -188,15 +184,15 @@ printf(result == (i * j) ? "Correct!\n" : "Incorrect!\n");
 close(fd);</code></pre>
           </div>
           <p><strong>How this was verified:</strong> Ran <code>./devtest</code> on the board after mounting the SD card and inserting the module, and watched the printed line for each operand pair, each ending in either "Correct!" or "Incorrect!".</p>
-          <p><strong>What was observed:</strong> Every combination from 0 times 0 up through 16 times 16 printed "Correct!", confirming the full path worked: the write syscall correctly reached <code>device_write</code> and the hardware input registers, and the read syscall correctly pulled the operand and product bytes back out of the hardware through <code>device_read</code>.</p>
+          <p><strong>What was observed:</strong> Every combination from 0 times 0 through 16 times 16 printed "Correct!". This exercised the complete path for each calculation: userspace buffer, write system call, driver, AXI input registers, multiplier logic, result register, read system call, and userspace comparison.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/zynq-codesign/devtest-character-device.png" alt="Terminal output showing registration of the multiplier character device and successful devtest calculations through /dev/multiplier" loading="lazy">
+            <figcaption>The userspace test opens <code>/dev/multiplier</code> and validates results returned through the character-driver interface.</figcaption>
+          </figure>
+          <p>The accelerator was now usable from an application, but deployment still required copying a module, running <code>insmod</code>, reading the assigned major number, and creating the device node after every boot. The final step was to make the driver part of the kernel build so the platform could initialize it automatically.</p>
 
-          <div class="placeholder-grid">
-            <figure class="project-placeholder"><div><span>Image placeholder</span><strong>devtest output over /dev/multiplier</strong></div><figcaption>Figure 5. devtest running against /dev/multiplier, showing correct results such as 1 * 4 = 4 Correct!</figcaption></figure>
-            <figure class="project-placeholder"><div><span>Image placeholder</span><strong>Driver source, multiplier.c</strong></div><figcaption>Figure 6. Character driver source: ioremap in init, register_chrdev, and the read/write handlers.</figcaption></figure>
-          </div>
-
-          <h3>3.6 Converting the driver to a built-in kernel module</h3>
-          <p>The final stage moved the driver out of the loadable module workflow entirely, so it initializes automatically as part of the kernel image instead of requiring a manual <code>insmod</code> after every boot.</p>
+          <h3>3.6 Integrate the driver into the kernel</h3>
+          <p>I moved the validated driver from the loadable-module workflow into the Linux source tree. Kconfig and Makefile entries made it a normal kernel option, and selecting it as built-in caused initialization to happen during boot. This removed the manual module-loading step and made the hardware support part of the platform rather than an add-on copied to the SD card.</p>
           <ol class="project-steps">
             <li><div><strong>Explore kernel configuration</strong><p>Ran <code>petalinux-config -c kernel</code> to open <code>menuconfig</code> and get familiar with how kernel features are controlled through Kconfig dependencies.</p></div></li>
             <li><div><strong>Add the driver into the kernel source tree</strong><p>Extracted the Linux source into the PetaLinux project under <code>components/ext_sources</code>, created a new <code>multiplier_driver</code> directory inside the kernel's <code>drivers</code> folder, and copied the driver source files there.</p></div></li>
@@ -206,12 +202,12 @@ close(fd);</code></pre>
             <li><div><strong>Trim the kernel</strong><p>Disabled unrelated kernel features not needed by this system, network device support, multimedia support, and sound card support, then rebuilt and compared the resulting <code>image.ub</code> size against the untrimmed build.</p></div></li>
           </ol>
           <p><strong>How this was verified:</strong> Watched the full boot log for the driver's own <code>printk</code> messages appearing automatically, without any manual <code>insmod</code>, then re-ran <code>./devtest</code> against <code>/dev/multiplier</code> exactly as in the loadable module stage.</p>
-          <p><strong>What was observed:</strong> During boot, the log showed <code>Registered device with major number 244</code> followed by <code>mknod /dev/multiplier c 244 0</code>, printed automatically as part of the kernel's own initialization, with no manual driver loading step at all. Running <code>devtest</code> afterward again produced correct results for every operand pair. Comparing <code>image.ub</code> before and after disabling networking, multimedia, and sound support showed a small reduction in kernel image size, around 1 KB, which is modest here but demonstrates the general principle that trimming unused kernel features shrinks the image.</p>
-
-          <div class="placeholder-grid">
-            <figure class="project-placeholder"><div><span>Image placeholder</span><strong>Boot log with built-in multiplier driver printk messages</strong></div><figcaption>Figure 7. Boot sequence showing automatic registration of the multiplier device, major number 244, with no insmod required.</figcaption></figure>
-            <figure class="project-placeholder"><div><span>Image placeholder</span><strong>image.ub size before and after trimming kernel features</strong></div><figcaption>Figure 8. File size comparison of image.ub before and after disabling networking, multimedia, and sound support.</figcaption></figure>
-          </div>
+          <p><strong>What was observed:</strong> During boot, the log showed <code>Registered device with major number 244</code> followed by the command needed to create <code>/dev/multiplier</code>. No manual <code>insmod</code> was required. Running <code>devtest</code> again produced correct results for every operand pair, which showed that kernel integration had not changed the device behavior. Disabling unused networking, multimedia, and sound features also produced a small reduction of about 1 KB in <code>image.ub</code>.</p>
+          <figure class="project-result-figure">
+            <img src="../assets/zynq-codesign/built-in-driver-boot.png" alt="PetaLinux boot log showing the multiplier driver automatically registered with major number 244" loading="lazy">
+            <figcaption>The built-in multiplier driver registers automatically during kernel boot, without a manual <code>insmod</code> step.</figcaption>
+          </figure>
+          <p>The finished system now follows one clean path. Vivado defines the registers and multiplication logic. The Zynq processing system reaches them through AXI4-Lite. Linux maps the registers inside a built-in driver. The character device translates file operations into hardware transactions. Finally, <code>devtest</code> verifies the returned result from userspace. Each layer hides the details below it while preserving the same two operands and one product from start to finish.</p>
 
           <h3>Validation checklist</h3>
           <ul class="detail-list">
@@ -237,8 +233,8 @@ close(fd);</code></pre>
         <section id="repository" class="project-section repository-section">
           <span class="section-number">05</span>
           <h2>Explore the implementation</h2>
-          <p>Browse my GitHub repositories for the Vivado IP source, Vitis test application, kernel driver, and devtest userspace code.</p>
-          <a class="repo-button" href="https://github.com/AdityaVMVS?tab=repositories" target="_blank" rel="noopener noreferrer">View repositories on GitHub <span>↗</span></a>
+          <p>Browse the complete project repository for the Vivado IP source, Vitis test application, kernel driver, and devtest userspace code.</p>
+          <a class="repo-button" href="https://github.com/AdityaVMVS/Zynq-FPGA-Hardware-Software-Co-Design-Project" target="_blank" rel="noopener noreferrer">View project on GitHub <span>↗</span></a>
         </section>
       </article>
     </div>
