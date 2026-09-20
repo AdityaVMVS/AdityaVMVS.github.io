@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What memcpy() Taught Me About Computer Architecture · V.M.V.S. Aditya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../blog.css">
+  <style>
+    /* Article details only. The page, header, typography and footer use the site's CSS. */
+    .blog-page .article-body > p { margin-bottom: 1.35em; line-height: 1.78; }
+    .blog-page .article-body > h2 { margin-top: 2.1em; margin-bottom: .85em; }
+    .blog-page .article-body > h2:first-of-type { margin-top: 0; }
+    .blog-page .article-body p code,
+    .blog-page .article-body li code { padding: .09em .3em; border-radius: .25em; background: color-mix(in srgb, currentColor 10%, transparent); font-size: .91em; }
+    .blog-page .article-body p strong { font-weight: 700; }
+
+    .blog-page .code-panel { overflow: hidden; margin: 1.4em 0 1.8em; border: 1px solid color-mix(in srgb, currentColor 23%, transparent); border-radius: 12px; }
+    .blog-page .code-panel-bar { display: flex; justify-content: space-between; align-items: center; gap: 1em; padding: .75em 1.15em; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); background: color-mix(in srgb, currentColor 7%, transparent); font-size: .82em; font-weight: 700; }
+    .blog-page .code-language { opacity: .7; letter-spacing: .08em; text-transform: uppercase; }
+    .blog-page .code-panel pre { max-width: 100%; margin: 0; padding: 1.2em 1.4em; overflow-x: auto; border: 0; border-radius: 0; font-size: .88em; line-height: 1.7; }
+    .blog-page .code-panel pre code { background: transparent; padding: 0; font: inherit; }
+
+    .blog-page .pipeline-card { margin: 1.6em 0 1.85em; padding: 1.4em; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); border-radius: 12px; background: color-mix(in srgb, currentColor 5%, transparent); }
+    .blog-page .pipeline-label { display: block; margin-bottom: 1em; font-size: .78em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .blog-page .pipeline-card .project-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6em; margin: 0; padding: 0; list-style: none; counter-reset: stage; }
+    .blog-page .pipeline-card .project-steps li { min-width: 0; padding: 1em .8em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 8px; background: color-mix(in srgb, currentColor 7%, transparent); counter-increment: stage; }
+    .blog-page .pipeline-card .project-steps li::before { display: block; content: "0" counter(stage); margin-bottom: .6em; font-size: .72em; font-weight: 700; opacity: .65; }
+    .blog-page .pipeline-card .project-steps strong { display: block; margin-bottom: .5em; font-size: .86em; line-height: 1.4; }
+    .blog-page .pipeline-card .project-steps p { margin: 0; font-size: .82em; line-height: 1.5; }
+
+    .blog-page .hazard-card { margin: 1.25em 0; padding: 1.1em 1.35em .05em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-left: 4px solid currentColor; border-radius: 9px; background: color-mix(in srgb, currentColor 5%, transparent); }
+    .blog-page .hazard-card.control { border-left-style: dashed; }
+    .blog-page .hazard-card p { margin: 0 0 1em; line-height: 1.78; }
+    .blog-page .hazard-card .hazard-example { padding: .6em .9em; border-radius: 6px; background: color-mix(in srgb, currentColor 8%, transparent); font-size: .92em; }
+    .blog-page .technique-card { margin: 1.3em 0; padding: 1.1em 1.35em .05em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 9px; background: color-mix(in srgb, currentColor 4%, transparent); }
+    .blog-page .technique-card p { margin: 0 0 1em; line-height: 1.78; }
+    .blog-page .technique-label { display: block; margin-top: 0; margin-bottom: .7em; font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+    .blog-page .detail-list { display: grid; gap: .75em; padding: 0; list-style: none; }
+    .blog-page .detail-list li { padding: 1em 1.2em; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 8px; background: color-mix(in srgb, currentColor 4%, transparent); line-height: 1.7; }
+    .blog-page .takeaway-card { margin-top: 1.3em; padding: 1.3em 1.5em .05em; border: 1px solid color-mix(in srgb, currentColor 24%, transparent); border-radius: 10px; background: color-mix(in srgb, currentColor 6%, transparent); }
+    .blog-page .takeaway-card p { margin: 0 0 1.15em; line-height: 1.78; }
+
+    @media (max-width: 760px) { .blog-page .pipeline-card .project-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 480px) { .blog-page .pipeline-card { padding: 1em; } .blog-page .pipeline-card .project-steps { grid-template-columns: 1fr; } .blog-page .code-panel pre { padding: 1em; } }
+  </style>
+</head>
+<body class="blog-page">
+  <header class="site-header blog-header"><a class="blog-brand" href="../index.html">V.M.V.S. Aditya</a><nav class="nav"><a href="../index.html">Portfolio</a><a href="index.html">All blogs</a></nav></header>
+  <main class="article-shell">
+    <a class="back-link" href="index.html">← Back to all blogs</a>
+    <article class="article-body">
+      <header class="article-header">
+        <div class="post-tags"><span>Computer Architecture</span><span>Firmware</span><span>Performance</span></div>
+        <h1>What a memcpy() Interview Question Taught Me About Computer Architecture</h1>
+        <p class="article-summary">A single interview question about optimizing memcpy() sent me from software tricks to RISC-V pipelines, hazards, and hand-tuned assembly, and taught me exactly where hardware draws the line on how fast code can go.</p>
+        <time datetime="2026-09-20">September 20, 2026 · 9 min read</time>
+      </header>
+
+      <h2>The question that started it</h2>
+      <p>Have you ever stopped to think about what actually happens underneath the hundreds of lines we write every day? Even something as ordinary as a <code>for</code> loop hides a whole machine's worth of work. Most of the time, the abstraction does its job and we never need to look beneath it. Then one question suddenly makes that entire layer visible.</p>
+      <p>Mine came in an interview. The question was simple: <em>how would you optimize a <code>memcpy()</code> function?</em> Coming from a firmware background, I first thought about software-level techniques: reducing unnecessary function-call overhead, avoiding repeated work inside the loop, helping the compiler optimize more aggressively, and improving how the pointers are accessed. All reasonable ideas.</p>
+      <p>Then the interviewer pointed directly at the loop. <em>Can you reduce the number of loop iterations below <code>n</code>?</em></p>
+      <p>My first reaction was: if I need to copy <code>n</code> bytes, don't I have to perform <code>n</code> copies? That was the key distinction. The goal was not to copy less data. It was to <strong>copy more data during each iteration</strong>.</p>
+
+      <h2>From <code>n</code> iterations to <code>n / 32</code></h2>
+      <p>A straightforward <code>memcpy</code> implementation copies one byte at a time. I'm keeping the same <code>void*</code> interface as the standard library function:</p>
+
+      <div class="code-panel"><div class="code-panel-bar"><span>Naive byte-by-byte copy</span><span class="code-language">C</span></div><pre><code>#include &lt;stddef.h&gt;
+#include &lt;stdint.h&gt;
+
+void* myMemCpy(void* dest, const void* src, size_t n) {
+    uint8_t* d = (uint8_t*)dest;
+    const uint8_t* s = (const uint8_t*)src;
+
+    for (size_t i = 0; i &lt; n; i++) {
+        d[i] = s[i];              // one byte per iteration
+    }
+
+    return dest;
+}</code></pre></div>
+
+      <p>The loop runs <code>n</code> times because every iteration moves exactly one byte. So the real optimization question becomes: <strong>what if one iteration represented 32 bytes of work instead of one?</strong></p>
+
+      <p>One way to express that idea in C is to define a 32-byte block and copy complete blocks first:</p>
+
+      <div class="code-panel"><div class="code-panel-bar"><span>32-byte block copy</span><span class="code-language">C</span></div><pre><code>typedef struct {
+    uint8_t data[32];
+} Block32;
+
+void* optimized_memcpy(void* dest, const void* src, size_t n) {
+    uint8_t* d = (uint8_t*)dest;
+    const uint8_t* s = (const uint8_t*)src;
+
+    // Number of complete 32-byte blocks
+    size_t blocks = n / 32;
+
+    // Remaining bytes after those blocks
+    size_t remainder = n % 32;
+
+    Block32* d_block = (Block32*)d;
+    const Block32* s_block = (const Block32*)s;
+
+    // Main loop: copy 32 bytes per iteration
+    for (size_t i = 0; i &lt; blocks; i++) {
+        d_block[i] = s_block[i];
+    }
+
+    // Move past the blocks already copied
+    d += blocks * 32;
+    s += blocks * 32;
+
+    // Cleanup loop: copy the remaining 0 to 31 bytes
+    for (size_t i = 0; i &lt; remainder; i++) {
+        d[i] = s[i];
+    }
+
+    return dest;
+}</code></pre></div>
+
+      <p>This is a simplified illustration of the block-copy idea rather than a production <code>memcpy</code> implementation, since arbitrary buffers can also have alignment and effective-type constraints in C.</p>
+
+      <p>This is the part that changed how I thought about the problem. The original main loop executes <code>n</code> times. The new main loop executes only <code>n / 32</code> times, then a small cleanup loop handles <code>n % 32</code> leftover bytes.</p>
+
+      <div class="technique-card">
+        <span class="technique-label">Example: copying 100 bytes</span>
+        <p><code>100 / 32 = 3</code> complete blocks and <code>100 % 32 = 4</code> remaining bytes.</p>
+        <p>So instead of making 100 passes through the main copy loop, the block loop runs only <strong>3 times</strong> to move 96 bytes, followed by 4 byte-sized cleanup copies.</p>
+      </div>
+
+      <p>The main optimization here is reducing the number of loop iterations. In the original byte-by-byte version, copying 100 bytes requires 100 iterations. With 32-byte blocks, the main loop runs only 3 times to copy 96 bytes, followed by 4 cleanup iterations for the remaining bytes.</p>
+
+      <p>So at the source-code level, this example goes from 100 explicit loop iterations to just 7 total, with only 3 iterations doing the bulk of the work. That reduces loop-control overhead such as comparisons, increments, and branches.</p>
+
+      <p>But that made me curious about what was actually happening underneath. I had reduced the loop iterations at the C level, but the processor does not execute C directly. The compiler still has to translate each 32-byte block copy into machine instructions. So I started wondering: <em>what does this optimized loop look like in assembly, and can it be improved further once we understand how the processor executes those instructions?</em></p>
+
+
+      <h2>Before touching assembly, I had to understand the pipeline</h2>
+      <p>My first attempt was to just start writing assembly and guessing at improvements, but that did not go anywhere useful. Every idea I had, use fewer instructions here, reorder something there, only made sense if I knew how the processor actually executes instructions one after another. So before writing a single optimization, I went back to basics and looked at the pipeline.</p>
+      <p>A common educational RISC-V implementation uses the classic five-stage pipeline:</p>
+      <div class="pipeline-card" aria-label="Five-stage instruction pipeline"><span class="pipeline-label">Inside the CPU: five pipeline stages</span><ol class="project-steps">
+        <li><div><strong>IF: Instruction Fetch</strong><p>Fetch the next instruction from memory.</p></div></li>
+        <li><div><strong>ID: Instruction Decode</strong><p>Decode it and read the source registers it needs.</p></div></li>
+        <li><div><strong>EX: Execute</strong><p>Do the arithmetic, or compute a memory address.</p></div></li>
+        <li><div><strong>MEM: Memory Access</strong><p>Actually read from or write to memory, for loads and stores.</p></div></li>
+        <li><div><strong>WB: Write Back</strong><p>Write the result back into a register.</p></div></li>
+      </ol></div>
+      <p>The pipeline is what makes it possible to overlap instructions. While one instruction is in <code>EX</code>, the next can already be in <code>ID</code>, and the one after that in <code>IF</code>. Throughput goes up because the stages stay busy at the same time instead of one instruction finishing completely before the next one even starts. Once I understood this, the goal for hand-written assembly became obvious: keep the pipeline full, and avoid anything that forces it to stall or throw work away.</p>
+      <p>Different instructions can sit in different stages at the same time, and that overlap is exactly what pipelining is for. But it also raises two practical questions for a loop like mine: once a value has been loaded, is it actually ready for the instruction that needs it next, and when the CPU hits a branch, which instruction should it fetch after that?</p>
+      <div class="hazard-card data">
+        <p><strong>Data hazard.</strong> A data hazard happens when a later instruction needs a value that an earlier instruction has not finished producing yet. A general example makes this easy to see:</p>
+        <p class="hazard-example"><code>lw t0, 0(a1)</code> followed by <code>add t1, t0, t2</code></p>
+        <p>The <code>add</code> depends on <code>t0</code>, but the load has not actually delivered that value until later in the pipeline. <em>Forwarding</em> lets the CPU pass the value straight to the instruction that needs it instead of waiting for it to be written back to a register, and that removes the wait in most cases. Even so, a simple five-stage core can still need a one-cycle stall right before that dependent instruction runs. My own copy loop follows <code>lw</code> with <code>sw</code> rather than an <code>add</code>, and whether that specific pairing stalls comes down to how the particular core handles forwarding into a store.</p>
+      </div>
+      <div class="hazard-card control">
+        <p><strong>Control hazard.</strong> A control hazard happens because the CPU has to decide what to fetch next before it actually knows how a branch will resolve. A loop-ending branch is a good general example:</p>
+        <p class="hazard-example"><code>bnez a2, copy_loop</code></p>
+        <p>On most passes through the loop, this branch is taken, and only on the final pass does execution fall through instead. On a core with dynamic branch prediction, the predictor can learn that pattern over repeated iterations, so a taken branch does not automatically cost a flush every time. What it can still get wrong is the exit itself, the one pass where the usual pattern breaks. I had originally assumed every taken branch in a loop was expensive by default, and that turned out to be an oversimplification.</p>
+      </div>
+      <p>With a clearer sense of both hazards, I went back to the copy loop to see what unrolling would actually change.</p>
+
+      <h2>Trying to make memcpy faster in assembly itself</h2>
+      <p>To reason about that generated code, I started with the simplest case: a scalar word-copy loop on a 32-bit RISC-V core. Each <code>lw</code>/<code>sw</code> pair moves one 4-byte word, and eight such word copies make the same 32-byte block used in the C example.</p>
+      <p>Here is roughly what that plain word-copy loop looks like:</p>
+      <div class="code-panel"><div class="code-panel-bar"><span>Baseline word-copy loop</span><span class="code-language">RISC-V</span></div><pre><code>copy_loop:
+    lw   t0, 0(a1)      ; load word from src   (a1 = src pointer)
+    sw   t0, 0(a0)      ; store word to dst    (a0 = dst pointer)
+    addi a0, a0, 4      ; dst += 4
+    addi a1, a1, 4      ; src += 4
+    addi a2, a2, -1     ; words-- (a2 = remaining word count)
+    bnez a2, copy_loop  ; loop while words != 0</code></pre></div>
+      <p>Six instructions moving four bytes, repeated <code>n/4</code> times. Once I knew what to look for, loop unrolling became interesting because it could help with both problems at once.</p>
+
+      <div class="technique-card"><span class="technique-label">Technique — unroll the loop to match the 32-byte block</span><p>Instead of loading one word and immediately storing it, unrolling lets the loop load several independent words first and then store them. Here, eight 4-byte words make one 32-byte block, matching the C example:</p>
+      <div class="code-panel"><div class="code-panel-bar"><span>32-byte unrolled copy loop</span><span class="code-language">RISC-V</span></div><pre><code>copy_loop:
+    lw   t0,  0(a1)
+    lw   t1,  4(a1)
+    lw   t2,  8(a1)
+    lw   t3, 12(a1)
+    lw   t4, 16(a1)
+    lw   t5, 20(a1)
+    lw   t6, 24(a1)
+    lw   a3, 28(a1)
+
+    sw   t0,  0(a0)
+    sw   t1,  4(a0)
+    sw   t2,  8(a0)
+    sw   t3, 12(a0)
+    sw   t4, 16(a0)
+    sw   t5, 20(a0)
+    sw   t6, 24(a0)
+    sw   a3, 28(a0)
+
+    addi a0, a0, 32     ; dst += 32
+    addi a1, a1, 32     ; src += 32
+    addi a2, a2, -1     ; one 32-byte block completed
+    bnez a2, copy_loop  ; a2 = remaining block count</code></pre></div>
+      <p>This rewrite helps with both issues. The matching stores are separated from their loads by independent work, which can give the pipeline more room to resolve load-to-store dependencies on a core where that pairing would otherwise stall. At the same time, one loop pass now moves the same 32 bytes represented by one <code>Block32</code> assignment in C, with a single branch and one set of pointer updates for the whole block. The C cleanup loop still handles any remaining <code>n % 32</code> bytes.</p>
+      <p>Seeing it laid out this way is what turned "unroll your loops" from a rule of thumb into something I could actually reason about. It addresses the load-use spacing and the branch-to-data ratio in the same move, even though how much that translates into real speedup still depends on the specific core it runs on.</p></div>
+
+      <h2>Where this stops working</h2>
+      <p>It would be easy to assume you can keep applying these ideas indefinitely and the loop just keeps getting faster. It does not, and the two reasons that matter most are hardware constraints that no amount of clever assembly gets around.</p>
+      <ul class="detail-list">
+        <li><strong>Scalar access width sets one limit.</strong> On base RV32I, ordinary integer loads and stores move at most 32 bits at a time. Moving more data per instruction requires wider ISA support, such as vector operations or other wider-access extensions, or multiple scalar instructions.</li>
+        <li><strong>Loop unrolling has a turning point.</strong> Fewer branches helps, but unroll far enough and the loop body grows past what comfortably fits in the instruction cache, or it needs more live registers than the architecture actually has, forcing spills back to memory. At that point you have traded a control hazard for a memory access problem, which is a step backward, not further progress.</li>
+      </ul>
+
+      <h2>Key takeaways</h2>
+      <div class="takeaway-card">
+      <p>I started with a C loop and one idea: handle more than a byte per iteration. Looking at the pipeline first is what gave me a real way to judge what to try next in assembly. Unrolling can separate dependent instructions and cut down on loop bookkeeping, but whether that turns into a measurable speedup still depends on the core, the alignment of the data, the memory system, and what the compiler was already doing before I got involved.</p>
+      <p>That is what stayed with me after the interview. Computer architecture turned a list of performance tricks into questions I could actually answer from first principles, instead of habits I was just applying by feel.</p>
+      </div>
+    </article>
+  </main>
+  <footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Engineering Notes</p></footer>
+</body>
+</html>
