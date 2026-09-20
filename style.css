@@ -130,13 +130,13 @@ a:hover {
     linear-gradient(0deg, rgba(5, 6, 9, 0.82), transparent 45%);
 }
 
-/* Content grid: text left, image right */
+/* Centered hero content */
 .hero-inner {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(3rem, 8vw, 8rem);
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
   width: 100%;
   padding: 4.5rem var(--page-gutter);
   max-width: var(--hero-width);
@@ -147,14 +147,16 @@ a:hover {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  justify-self: start;
-  text-align: left;
+  align-items: center;
+  gap: clamp(1rem, 2.2vh, 1.6rem);
+  width: 100%;
+  text-align: center;
 }
 
 /* Hero text styles */
 .hero-text h1 {
-  max-width: 720px;
-  margin-bottom: 1rem;
+  max-width: 100%;
+  margin-bottom: 0;
   color: #f8fafc;
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(2.7rem, 6vw, 5.2rem);
@@ -189,18 +191,27 @@ a:hover {
 }
 
 .hero-tagline {
+  max-width: 100%;
   font-size: 0.9rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #7dd3fc;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
 }
 
 .hero-description {
-  max-width: 42rem;
-  margin-bottom: 1.5rem;
+  max-width: 70rem;
+  margin-bottom: 0;
   color: #c4cedb;
   font-size: 1.03rem;
+}
+
+.hero-job-areas {
+  max-width: 68rem;
+  margin-bottom: 0;
+  color: #bdefff;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .hero-location {
@@ -209,7 +220,9 @@ a:hover {
   gap: 0.55rem;
   font-size: 0.95rem;
   color: #d1d5db;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
+  justify-content: center;
+  max-width: 100%;
 }
 
 .hero-links {
@@ -225,8 +238,9 @@ a:hover {
 /* Buttons with glassy hover */
 .hero-actions {
   display: flex;
+  justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
 }
 
 .btn {
@@ -267,65 +281,6 @@ a:hover {
 
 .btn.secondary:hover {
   background: rgba(31, 41, 55, 0.9);
-}
-
-/* Hero profile card: right side darker */
-.hero-profile {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  justify-self: end;
-}
-
-.profile-card {
-  background: rgba(11, 17, 32, 0.6);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  text-align: center;
-  max-width: 280px;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
-}
-
-.profile-card img {
-  width: 100%;
-  border-radius: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.profile-caption {
-  font-size: 0.9rem;
-  color: #9ca3af;
-}
-
-.profile-caption span,
-.profile-name {
-  display: block;
-}
-
-.profile-name {
-  margin-bottom: 0.35rem;
-  color: #f1f5f9;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.05rem;
-}
-
-.profile-caption span {
-  font-size: 0.78rem;
-  line-height: 1.55;
-}
-
-.profile-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.85);
-  border-color: rgba(0, 200, 255, 0.35);
-}
 }
 
 /* Sections */
@@ -809,22 +764,32 @@ a:hover {
   border-top: 1px solid #111827;
 }
 
+.visit-counter {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.65rem;
+}
+
+.visit-counter img {
+  display: block;
+  width: auto;
+  height: 20px;
+}
+
 /* Responsiveness */
 @media (max-width: 768px) {
   .hero-inner {
     grid-template-columns: 1fr;
-    text-align: left;
     padding-top: 2.5rem;
     padding-bottom: 2.5rem;
   }
 
-  .hero-profile {
-    justify-content: flex-start;
-    margin-top: 1.5rem;
+  .hero-description {
+    max-width: 42rem;
   }
 
-  .hero-description {
-    max-width: none;
+  .hero-location {
+    max-width: 32rem;
   }
 
   .site-header {

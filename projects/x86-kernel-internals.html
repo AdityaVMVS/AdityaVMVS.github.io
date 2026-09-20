@@ -1,15 +1,231 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>x86 Kernel Internals · V.M.V.S. Aditya</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="../project.css"></head>
-<body class="project-page"><header class="site-header project-header"><a class="project-brand" href="../index.html">V.M.V.S. Aditya</a><nav class="nav"><a href="../index.html#projects">Portfolio</a><a href="../blogs/">Blog</a><a href="../index.html#contact">Contact</a></nav></header><main>
-<section class="project-hero"><a href="../index.html#projects" class="project-back">← Back to projects</a><p class="project-eyebrow">x86 · QEMU · Paging · Scheduling · Block I/O</p><h1>x86 Kernel Internals: Paging, Scheduling, and Block I/O</h1><p class="project-lead">A teaching kernel extended with virtual memory, process scheduling, and interrupt-driven storage to study operating-system mechanisms end to end.</p><div class="project-summary"><div><span>Architecture</span><strong>x86</strong></div><div><span>Runtime</span><strong>QEMU</strong></div><div><span>Memory</span><strong>Demand paging</strong></div><div><span>I/O</span><strong>Interrupt driven</strong></div></div></section>
-<div class="project-layout"><aside class="project-directory"><p>Project directory</p><nav><a href="#introduction" class="active">Introduction</a><a href="#tools">Tools &amp; setup</a><a href="#details">Project details</a><a href="#links">Useful links</a><a href="#repository">Repository</a></nav></aside><article class="project-content">
-<section id="introduction" class="project-section"><span class="section-number">01</span><h2>Introduction</h2><p>This project implements core kernel mechanisms rather than treating them as black boxes. It follows execution from a page fault or timer interrupt through kernel policy, data structures, context switching, and eventual resumption.</p><div class="design-flow"><span>User process</span><i>→</i><span>Trap / interrupt</span><i>→</i><span>Kernel subsystem</span><i>→</i><span>Resume execution</span></div></section>
-<section id="tools" class="project-section"><span class="section-number">02</span><h2>Tools &amp; setup</h2><h3 class="project-subheading">Software used</h3><div class="spec-grid"><div><h3>C and x86 assembly</h3><p>Kernel subsystems, low-level entry code, and context switching.</p></div><div><h3>QEMU</h3><p>Repeatable x86 emulation, disk images, and interrupt testing.</p></div><div><h3>GDB</h3><p>Kernel breakpoints, register inspection, and fault diagnosis.</p></div><div><h3>GCC and Make</h3><p>Freestanding compilation, linking, and reproducible builds.</p></div></div><h3 class="project-subheading">Hardware used</h3><div class="hardware-list"><div><span>01</span><p><strong>x86 virtual machine</strong> provided by QEMU.</p></div><div><span>02</span><p><strong>Emulated block device</strong> for interrupt-driven storage experiments.</p></div><div><span>03</span><p><strong>Development host</strong> for builds, debugging, and test automation.</p></div></div></section>
-<section id="details" class="project-section project-article"><span class="section-number">03</span><h2>Project details</h2><p>The work connects three subsystems that strongly affect one another: virtual memory, scheduling, and blocking I/O.</p><figure class="project-placeholder"><div><span>Image placeholder</span><strong>Kernel architecture or page-table diagram</strong><small>Replace with your diagram</small></div><figcaption>Figure 1. Trap and memory-management path.</figcaption></figure><h3>Fault handling flow</h3><div class="flow-chart"><div><small>01</small><strong>Access</strong><span>Missing page</span></div><i>→</i><div><small>02</small><strong>Trap</strong><span>Enter kernel</span></div><i>→</i><div><small>03</small><strong>Map</strong><span>Allocate frame</span></div><i>→</i><div><small>04</small><strong>Resume</strong><span>Retry access</span></div></div><h3>Page-fault handler</h3><div class="code-example"><div class="code-heading"><span>Virtual memory · simplified</span><code>C</code></div><pre><code>void page_fault(uintptr_t address) {
-    page_t *page = lookup_page(address);
-    frame_t *frame = alloc_frame();
-    map_page(page, frame, PAGE_USER | PAGE_WRITE);
-    invalidate_tlb(address);
-}</code></pre><p>The handler allocates and maps a physical frame only when a process first touches the virtual page.</p></div><h3>What was validated</h3><ul class="detail-list"><li>Page-table creation and TLB invalidation.</li><li>FIFO scheduling and process state transitions.</li><li>Blocking and wake-up around disk completion interrupts.</li><li>Concurrent workloads under repeated allocation and I/O.</li></ul></section>
-<section id="links" class="project-section"><span class="section-number">04</span><h2>Useful links</h2><div class="resource-list"><a href="https://www.qemu.org/docs/master/" target="_blank" rel="noopener noreferrer"><span>QEMU</span><strong>System emulator documentation</strong><b>↗</b></a><a href="https://wiki.osdev.org/Paging" target="_blank" rel="noopener noreferrer"><span>OSDev</span><strong>x86 paging reference</strong><b>↗</b></a></div></section>
-<section id="repository" class="project-section repository-section"><span class="section-number">05</span><h2>Explore the implementation</h2><p>Browse the source code and related systems projects on GitHub.</p><a class="repo-button" href="https://github.com/AdityaVMVS?tab=repositories" target="_blank" rel="noopener noreferrer">View repositories on GitHub <span>↗</span></a></section></article></div></main><footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Semiconductor &amp; Embedded Portfolio</p></footer><script src="../project.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>x86 Teaching Kernel &middot; V.M.V.S. Aditya</title>
+  <meta name="description" content="A teaching x86 kernel built across six systems labs, covering physical and virtual memory, demand paging, thread scheduling, non-busy-waiting disk I/O, and a persistent file system.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../project.css">
+</head>
+<body class="project-page">
+  <header class="site-header project-header">
+    <a class="project-brand" href="../index.html">V.M.V.S. Aditya</a>
+    <nav class="nav"><a href="../index.html#projects">Portfolio</a><a href="../blogs/">Blog</a><a href="../index.html#contact">Contact</a></nav>
+  </header>
+
+  <main>
+    <section class="project-hero">
+      <a href="../index.html#projects" class="project-back">&larr; Back to projects</a>
+      <p class="project-eyebrow">CSCE 611 &middot; x86 &middot; C/C++ &middot; QEMU &middot; Kernel Engineering</p>
+      <h1>Building an x86 Kernel: Memory, Scheduling, Storage, and Files</h1>
+      <p class="project-lead">Six labs, one kernel. Each subsystem exists to remove a limitation left by the one before it: a shortage of physical memory led to a frame allocator, giving programs private address spaces led to page tables, ambiguous page faults led to virtual-memory pools, wanting more than one runnable task led to a scheduler, an idle CPU during disk waits led to a non-blocking driver, and a pile of unnamed disk blocks led to a file system.</p>
+      <div class="project-summary">
+        <div><span>Architecture</span><strong>32-bit x86</strong></div>
+        <div><span>Runtime</span><strong>QEMU</strong></div>
+        <div><span>Core systems</span><strong>Memory &middot; Threads &middot; I/O</strong></div>
+        <div><span>Language</span><strong>C / C++ / Assembly</strong></div>
+      </div>
+    </section>
+
+    <div class="project-layout">
+      <aside class="project-directory">
+        <p>Project directory</p>
+        <nav>
+          <a href="#introduction" class="active">Introduction</a>
+          <a href="#frames">1. Physical frames</a>
+          <a href="#paging">2. Virtual addresses</a>
+          <a href="#vmpool">3. Legitimate vs. invalid</a>
+          <a href="#recursive">4. Page tables that scale</a>
+          <a href="#scheduling">5. Scheduling threads</a>
+          <a href="#disk">6. Non-blocking disk</a>
+          <a href="#filesystem">7. A file system</a>
+          <a href="#validation">Validation</a>
+          <a href="#links">Useful links</a>
+          <a href="#repository">Repository</a>
+        </nav>
+      </aside>
+
+      <article class="project-content">
+
+        <section id="introduction" class="project-section">
+          <span class="section-number">01</span>
+          <h2>Introduction</h2>
+          <p>This project is seven machine problems that add up to one operating-system kernel. Reading separately will make each one looks like an isolated topic - "implement a frame allocator," "implement a scheduler," "implement a file system." But, in a bigger picture, it holds a single argument: a kernel with 32 MB of physical memory and no infrastructure at all cannot safely run more than one thing, cannot protect itself from bad addresses, cannot keep the CPU busy while a disk seeks, and cannot save anything persistently. Every lab below tries to solve issues on what the previous lab exposed.</p>
+          <p>The rest of this page will explain each one section about <em>what it is</em>, <em>what specific problem it solves</em>, and <em>why solving that problem immediately creates the next problem</em>.</p>
+          <div class="design-flow"><span>Frame allocator</span><i>&rarr;</i><span>Paging</span><i>&rarr;</i><span>VM pools</span><i>&rarr;</i><span>Recursive tables</span><i>&rarr;</i><span>Scheduler</span><i>&rarr;</i><span>Disk I/O</span><i>&rarr;</i><span>File system</span></div>
+        </section>
+
+        <section id="frames" class="project-section project-article">
+          <span class="section-number">02</span>
+          <h2>1. Why the kernel has to own its physical memory first</h2>
+          <h3>What problem exists before any code is written</h3>
+          <p>The machine has 32 MB of RAM. RAM is not one big undivided pool you can hand out however you like - it is carved, in this kernel, into 4 KB chunks called <strong>frames</strong>. Before the kernel can do anything else - build page tables, start threads, load a file - it needs an answer to one very unglamorous question: <em>which frames are currently free?</em> Without an answer, two unrelated parts of the kernel could be handed the same frame and silently corrupt each other's data. There is no way to build anything more sophisticated on top of memory that nobody is tracking.</p>
+
+          <h3>What <code>ContFramePool</code> is, and what it solves</h3>
+          <p>I implemented <code>ContFramePool</code> as that bookkeeper. It divides the 32 MB machine into two separately-managed regions - a <strong>kernel pool</strong> (2&ndash;4 MB, used for the kernel's own data structures) and a <strong>process pool</strong> (everything above 4 MB, used for everything else) - and for every frame in a pool it records one of four states: free, the first frame of an allocation, a continuation frame of a multi-frame allocation, or permanently off-limits. <code>get_frames()</code> scans for a run of free frames and returns the number of the first one; <code>release_frames()</code> takes that same number, works out which pool owns it, and frees the whole run. <code>mark_inaccessible()</code> exists because real hardware has holes in it - the note in the handout about the 15&ndash;16 MB region that may not be safe to use - so a pool needs a way to permanently blacklist part of itself.</p>
+          <p>One detail matters more than it looks: the bookkeeping data (the bitmap of frame states) has to live somewhere physical too, and it is too big for the stack. It can be stored inside the pool it describes (<em>internal</em>) or inside a different pool entirely (<em>external</em>) - which is why the process pool's metadata is deliberately stored in kernel-pool frames instead of its own. That distinction is not a stylistic choice; it becomes necessary the moment paging is turned on, which is exactly the next section.</p>
+          <div class="flow-chart">
+            <div><small>01</small><strong>Scan</strong><span>Find a free run of frames</span></div><i>&rarr;</i>
+            <div><small>02</small><strong>Mark</strong><span>Record head and continuation states</span></div><i>&rarr;</i>
+            <div><small>03</small><strong>Return</strong><span>Expose the first frame number</span></div><i>&rarr;</i>
+            <div><small>04</small><strong>Release</strong><span>Locate the owning pool and free the run</span></div>
+          </div>
+
+          <h3>Why this alone is not enough</h3>
+          <p>The frame allocator solves "who owns which physical memory," but everything built on top of it still speaks in raw physical addresses. That has three consequences, all bad: any piece of code can address any physical frame, including ones it has no business touching; a program cannot be given a clean, contiguous-looking address range if the physical frames it actually gets are scattered; and there is no way, later, to give two different programs their own private view of memory while sharing the same physical RAM. Physical addressing is a bookkeeping win and a protection dead end. The fix is to stop letting anyone touch physical addresses directly, and route every memory access through a translation step - which is what paging is for.</p>
+        </section>
+
+        <section id="paging" class="project-section project-article">
+          <span class="section-number">03</span>
+          <h2>2. Why we need virtual addresses at all, and how page tables provide them</h2>
+          <h3>What problem virtual memory solves</h3>
+          <p>Physical RAM is a scarce, shared, fragmented resource: 32 MB total, cut into pools, with holes marked off-limits, and no guarantee that the frames free for a given allocation are next to each other. A program, on the other hand, wants to think in a simple contiguous space and should never be able to reach outside the parts of memory it was actually given. <strong>Virtual memory</strong> is the layer that resolves this conflict: every address the CPU executes is a <em>logical</em> (virtual) address, and hardware - not software running per-access - translates it to whatever physical frame is actually backing it. This buys two things at once: a program's memory can look contiguous even when the underlying frames are not, and an address that was never allocated to a program simply has no translation, so touching it faults instead of corrupting something else.</p>
+
+          <h3>How the x86 page table does the translation</h3>
+          <p>The mechanism is a two-level table: a <strong>page directory</strong> whose entries each point to a <strong>page table</strong>, whose entries each point to a physical frame. The top 10 bits of a 32-bit virtual address select a page-directory entry, the next 10 bits select a page-table entry within that table, and the final 12 bits are the byte offset inside the resulting 4 KB frame. The kernel builds this structure, stores the page directory's physical address in the <code>CR3</code> register, and flips a bit in <code>CR0</code> - from that instruction onward, every memory access the CPU makes is translated through whatever <code>CR3</code> currently points to.</p>
+          <p>There is a bootstrapping problem hiding here: the very code that sets up and enables translation has to keep running correctly the instant translation turns on. The fix is to <strong>identity-map</strong> the first 4 MB - logical address <code>0x01000</code> is deliberately mapped to physical address <code>0x01000</code>, and so on - so the kernel's own code, stack, and data don't move out from under it when paging is switched on. Only memory above 4 MB is "freely mapped," i.e. mapped to whatever physical frame the frame allocator happened to hand out.</p>
+
+          <h3>Why mapping is done on demand, not up front</h3>
+          <p>A process can address up to 4 GB, but no program needs that much physical memory, and pre-mapping every possible page would waste enormous amounts of RAM before a single byte is used. So pages above 4 MB start out <em>not present</em>. The first time an instruction touches one, the CPU raises a page fault (interrupt 14), the faulting address is available in <code>CR2</code>, and the fault handler does the actual allocation at that moment: ask the frame allocator (previous section) for a frame, install it in the page table, mark the page present, and let the CPU retry the instruction. This is why the two subsystems are dependent rather than parallel - the fault handler is a customer of the frame allocator, not a replacement for it.</p>
+          <div class="flow-chart">
+            <div><small>01</small><strong>Touch</strong><span>Instruction accesses an unmapped page</span></div><i>&rarr;</i>
+            <div><small>02</small><strong>Fault</strong><span>CPU raises interrupt 14, address in CR2</span></div><i>&rarr;</i>
+            <div><small>03</small><strong>Allocate</strong><span>Frame pool supplies a physical frame</span></div><i>&rarr;</i>
+            <div><small>04</small><strong>Resume</strong><span>PTE marked present, instruction retried</span></div>
+          </div>
+
+          <h3>Why this alone is not enough</h3>
+          <p>Demand paging creates a new ambiguity that didn't exist when everything was pre-mapped: a page fault on a not-present address can now mean two completely different things. It might be the <em>first legitimate touch</em> of memory the program is supposed to have - in which case the fault handler should quietly allocate a frame and move on. Or it might be a genuine bug - a wild pointer, an out-of-bounds access - in which case silently mapping it would hide the error instead of catching it. The page table by itself has no way to tell these apart; it only knows "present" or "not present," not "supposed to exist eventually" versus "never should exist." Something else has to track which virtual regions were actually requested, so the fault handler has a way to check legitimacy before it materializes a frame.</p>
+        </section>
+
+        <section id="vmpool" class="project-section project-article">
+          <span class="section-number">04</span>
+          <h2>3. Telling a real allocation apart from a bad pointer</h2>
+          <h3>What <code>VMPool</code> is</h3>
+          <p><code>VMPool</code> is a lazy, page-granular allocator for virtual addresses. Calling <code>allocate()</code> does not touch physical memory at all - it just records, in a small table, that a given range of virtual addresses now belongs to the caller. Calling <code>is_legitimate(address)</code> answers exactly the question paging alone couldn't: is this address inside a region someone actually asked for? The page table keeps a list of every registered pool, and when a fault happens on a not-present page, it asks each pool that question before doing anything else. Only if some pool says yes does the fault handler proceed to grab a frame and complete the mapping the way the previous section described; otherwise the access is treated as an error.</p>
+          <div class="flow-chart">
+            <div><small>01</small><strong>Reserve</strong><span>allocate() records a virtual region, no frame yet</span></div><i>&rarr;</i>
+            <div><small>02</small><strong>Touch</strong><span>CPU raises a page fault on that region</span></div><i>&rarr;</i>
+            <div><small>03</small><strong>Validate</strong><span>Page table asks: does any VMPool own this address?</span></div><i>&rarr;</i>
+            <div><small>04</small><strong>Materialize</strong><span>Only now is a physical frame allocated and mapped</span></div>
+          </div>
+          <p>Releasing memory runs the same idea backward: the pool identifies which of its pages held the released region, tells the page table to invalidate those specific mappings and return the frames to the allocator, and - because the CPU's translation cache (the TLB) does not automatically notice page-table edits - the kernel reloads <code>CR3</code> to flush it. Skipping that flush is a classic bug: the CPU would keep using a stale, freed mapping and fail in a way that looks unrelated to memory management at all.</p>
+
+          <h3>Why this alone is not enough</h3>
+          <p>At this point the address-space machinery is logically complete, but it has a scaling limit baked into how it was built. The page directory and page-table pages themselves have to live somewhere in physical memory, and the simplest place to put them was the small identity-mapped region below 4 MB, because there physical and virtual addresses are the same number and no translation is needed to edit them. That convenience is also the ceiling: the identity-mapped region is tiny, and every additional address space or every additional chunk of virtual memory needs more page-table pages. To go further, those pages need to move into ordinary mapped memory above 4 MB - but that immediately creates a chicken-and-egg problem: the kernel needs a <em>virtual</em> address to edit a page table, yet the page table is the very thing that defines what virtual addresses mean.</p>
+        </section>
+
+        <section id="recursive" class="project-section project-article">
+          <span class="section-number">05</span>
+          <h2>4. Letting page tables manage themselves, so they can grow</h2>
+          <h3>What the recursive mapping trick is</h3>
+          <p>The fix is to make the page directory point to itself: the very last entry of the page directory is set up so that its "page table" is the page directory itself. The CPU doesn't know this is a trick - it walks the structure exactly as it always does. But because the MMU is fooled into treating the directory as an ordinary page table (and, at one more level of indirection, treating any page table as an ordinary data page), a small set of carefully chosen fixed virtual addresses now always resolve to "the page directory" or "the page-table page for address X," no matter where those pages physically live. That gives the kernel a predictable virtual address for any page-directory or page-table entry it needs to edit, using the same translation mechanism the tables themselves define - without maintaining a second, parallel bookkeeping structure just to find them.</p>
+          <div class="code-example">
+            <div class="code-heading"><span>Recursive x86 page-table windows</span><code>Address layout</code></div>
+            <pre><code>0xFFFFF000 + (directory_index * 4)  -&gt; page-directory entry
+0xFFC00000 + (directory_index * 4096)
+           + (table_index * 4)      -&gt; page-table entry</code></pre>
+          </div>
+
+          <h3>What this unlocks</h3>
+          <p>With this trick in place, page-directory and page-table frames can be pulled from the large process pool instead of the cramped kernel pool, so the amount of virtual memory the kernel can manage is no longer bottlenecked by a 2 MB identity-mapped region. This is what makes the earlier sections - frame allocation, demand paging, VM-pool validation - actually usable at any meaningful scale instead of just as a proof of concept.</p>
+
+          <h3>Why this alone is not enough</h3>
+          <p>Everything up to this point solves one problem: giving a single flow of execution a safe, scalable, protected view of memory. But a kernel that can only ever run one thing at a time from start to finish is not very useful. The moment memory management can hand out independent stacks and independent address ranges reliably, the natural next question is: can more than one independent computation run using that memory? The early, primitive answer - have each routine explicitly call the next one by name when it's willing to give up the CPU - technically works, but it means every routine has to know about every other routine, and it collapses the instant a third, fourth, or blocked routine is added. That coupling is exactly what a scheduler removes.</p>
+        </section>
+
+        <section id="scheduling" class="project-section project-article">
+          <span class="section-number">06</span>
+          <h2>5. From routines calling each other by name to a real scheduler</h2>
+          <h3>What problem a scheduler solves</h3>
+          <p>Without a scheduler, "multithreading" means <code>fun1()</code> hard-codes a call to dispatch <code>fun2()</code>, which hard-codes a call back to <code>fun1()</code>. Adding a third thread means going back and editing both of the existing ones. No thread can simply say "I'm done for now" without knowing exactly who should run next, and nothing handles a thread that doesn't want to run at all (because it's waiting on something) or one that wants to stop entirely. A scheduler replaces all of that direct coordination with one neutral, third-party decision-maker.</p>
+
+          <h3>What the FIFO scheduler does</h3>
+          <p>The scheduler owns a ready queue - a plain FIFO list of threads waiting for the CPU - while <code>Thread::dispatch_to()</code> stays responsible only for the mechanical part: saving the current thread's register state and stack pointer, and restoring another thread's. A running thread calls <code>yield()</code> to voluntarily give up the CPU; the scheduler pulls the thread at the head of the queue and dispatches to it. New threads become schedulable through <code>add()</code>; threads that were waiting on something become runnable again through <code>resume()</code>, which puts them back at the tail of the queue.</p>
+          <ol class="project-steps">
+            <li><div><strong>Create and admit</strong><p>A new thread gets its entry function and its own stack, then enters the ready queue via <code>add()</code>.</p></div></li>
+            <li><div><strong>Yield the processor</strong><p>The running thread calls <code>yield()</code>; the scheduler picks the queue head and cycles other runnable work fairly.</p></div></li>
+            <li><div><strong>Switch context</strong><p><code>dispatch_to()</code> saves the outgoing thread's state and restores the incoming thread's, which then continues from wherever it last left off.</p></div></li>
+            <li><div><strong>Terminate safely</strong><p>A thread whose function returns cannot free the stack it is still standing on, so cleanup is deferred until another thread can safely reclaim its resources.</p></div></li>
+          </ol>
+          <p>That last point is a real problem, not a footnote: a thread cannot deallocate the memory it is currently executing on top of. The practical answer is the same one many real kernels use - park the finished thread somewhere (a "zombie" state) and let a different execution context perform the actual cleanup later.</p>
+
+          <h3>Why this alone is not enough</h3>
+          <p>A working scheduler means the kernel finally has more than one piece of runnable work in flight, and CPU time is now a resource worth protecting. That exposes an existing waste that didn't matter before: the disk driver's wait loop polls the hardware in a tight busy-loop until the disk is ready, holding the entire CPU hostage for however long a mechanical disk operation takes. With only one thread ever running, that was merely slow. With a ready queue full of other runnable threads, it is a bottleneck the scheduler was specifically built to prevent - so the scheduler's first real job is fixing the disk driver.</p>
+        </section>
+
+        <section id="disk" class="project-section project-article">
+          <span class="section-number">07</span>
+          <h2>6. Turning a busy-waiting disk into one that yields</h2>
+          <h3>What problem the non-blocking disk solves</h3>
+          <p>The provided <code>SimpleDisk</code> driver issues a programmed-I/O ATA request and then calls <code>wait_while_busy()</code>, which is implemented as <code>while (is_busy()) {}</code> - a pure busy loop. The disk head has to physically move and the transfer has to be set up before data is ready, and during all of that the CPU does nothing but poll a status bit. That's acceptable with a single thread and nothing else to do; it's unacceptable the moment other threads exist and could be making progress instead.</p>
+
+          <h3>What <code>NonBlockingDisk</code> does differently</h3>
+          <p><code>NonBlockingDisk</code> is derived from <code>SimpleDisk</code> and overrides exactly the wait behavior: instead of spinning, the calling thread yields the CPU back to the scheduler and rechecks the device's status the next time it gets scheduled. From the caller's point of view, <code>read()</code> and <code>write()</code> still look like ordinary synchronous calls - the API doesn't change - but the CPU is no longer wasted while the hardware catches up. This is precisely why the scheduler had to exist first: yielding is meaningless if there is no ready queue and no other thread for the CPU to run in the meantime.</p>
+          <div class="design-flow"><span>Issue ATA request</span><i>&rarr;</i><span>Device busy</span><i>&rarr;</i><span>Yield CPU</span><i>&rarr;</i><span>Recheck status</span><i>&rarr;</i><span>Transfer 512-byte block</span></div>
+
+          <h3>Why this alone is not enough</h3>
+          <p>A non-blocking disk driver makes block transfers cheap to perform, but a "block" is still just an anonymous 512-byte slot identified by a number. It has no name, no owner, no recorded length, and nothing tracking which blocks are free versus in use. Reading and writing raw blocks efficiently is necessary but not sufficient for anything a program would recognize as a "file." The last layer turns that raw block interface into named, persistent storage.</p>
+        </section>
+
+        <section id="filesystem" class="project-section project-article">
+          <span class="section-number">08</span>
+          <h2>7. Turning disk blocks into files</h2>
+          <h3>What problem the file system solves</h3>
+          <p>Even with a working, non-blocking disk driver, "storage" so far means "block number 17." Nothing tracks which blocks belong together, which blocks are free, how long a file is, or what a caller should call it. The file system is the layer that adds identity (a file has a name - here, just an integer id), allocation (which blocks a file owns), and free-space management (which blocks are available for the next file) on top of the raw block interface.</p>
+
+          <h3>How the three classes divide the work</h3>
+          <p><code>FileSystem</code> owns the disk-wide bookkeeping: <code>Format()</code> initializes a fresh, empty file system on a disk of a given size; <code>Mount()</code> reconnects an in-memory <code>FileSystem</code> object to metadata that already exists on disk; <code>CreateFile()</code> and <code>DeleteFile()</code> allocate or reclaim a block and an inode. <code>Inode</code> is the record that ties a file's id and length to the single data block it owns - the inode list doubles as the directory, since this file system deliberately has no separate directory structure. <code>File</code> handles everything about using an already-open file: it keeps a 512-byte cache of the file's one block plus a current cursor position, and it translates the caller's byte-oriented <code>Read()</code>/<code>Write()</code> calls into reads and writes of that cached block, taking care never to read or write past the file's recorded length or the one-block maximum size.</p>
+          <div class="spec-grid">
+            <div><h3>Format and mount</h3><p>Initialize persistent metadata, then reconnect the in-memory file-system object to an existing disk image.</p></div>
+            <div><h3>Inode table</h3><p>Doubles as a single-level directory: file id, length, and its one data block, all in one place.</p></div>
+            <div><h3>Free-block map</h3><p>A simple bitmap-style array on disk, so create and delete can allocate and reclaim blocks.</p></div>
+            <div><h3>Sequential access</h3><p>A per-open-file cursor and cache turn byte-level reads and writes into block operations.</p></div>
+          </div>
+          <p>Limiting every file to a single 512-byte block is a deliberate simplification, not a shortcut around the hard part: it removes multi-block allocation bookkeeping while still exercising the entire persistence path end to end - formatting writes empty inode and free-block metadata, mounting reads it back, creating a file reserves an inode and a block, closing writes the cache back to disk, reopening recovers the exact bytes, and deleting returns the block to the free list.</p>
+          <p>This closes the loop the whole project has been building toward: a file operation issued at the very top of the kernel now travels down through the file system into a block request, through the non-blocking disk driver (which can yield the CPU without stalling the system), through the scheduler (which has other threads ready to run in the meantime), and - for the in-memory pieces along the way - through the paging and frame-allocation machinery that made it possible to hand out that memory safely in the first place.</p>
+        </section>
+
+        <section id="validation" class="project-section">
+          <span class="section-number">09</span>
+          <h2>Validation strategy</h2>
+          <p>Validation followed the same dependency order as implementation. Each layer was tested at its public boundary before the next subsystem was allowed to rely on it, so a later failure could be traced through a chain of already-verified contracts rather than debugged as one monolithic kernel.</p>
+          <ul class="detail-list">
+            <li><strong>Frame allocation:</strong> allocate and release single and contiguous runs, preserve inaccessible regions, and verify internal versus external metadata placement.</li>
+            <li><strong>Paging:</strong> enable translation, trigger first-touch faults above 4 MB, create missing mappings, reject addresses outside registered pools, and verify page release.</li>
+            <li><strong>Virtual allocation:</strong> reserve multiple page-aligned regions, materialize them lazily, and return mapped frames when regions are released.</li>
+            <li><strong>Scheduling:</strong> run four kernel threads through repeated FIFO yields and verify safe completion of terminating thread functions.</li>
+            <li><strong>Disk I/O:</strong> perform block reads and writes while confirming that a waiting thread yields processor time to other ready work.</li>
+            <li><strong>File system:</strong> format and mount a 128 KB volume; create two files, write distinct strings, close and reopen them, verify their contents, and delete them without assertion failures.</li>
+          </ul>
+        </section>
+
+        <section id="links" class="project-section">
+          <span class="section-number">10</span>
+          <h2>Useful links</h2>
+          <div class="resource-list">
+            <a href="https://www.qemu.org/docs/master/system/" target="_blank" rel="noopener noreferrer"><span>QEMU documentation</span><strong>System emulation user guide</strong><b>&nearr;</b></a>
+            <a href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html" target="_blank" rel="noopener noreferrer"><span>Intel documentation</span><strong>Intel 64 and IA-32 Architectures Software Developer Manuals</strong><b>&nearr;</b></a>
+            <a href="https://wiki.osdev.org/Paging" target="_blank" rel="noopener noreferrer"><span>OSDev reference</span><strong>x86 paging and page-table structure</strong><b>&nearr;</b></a>
+            <a href="https://wiki.osdev.org/ATA_PIO_Mode" target="_blank" rel="noopener noreferrer"><span>OSDev reference</span><strong>ATA programmed-I/O mode</strong><b>&nearr;</b></a>
+          </div>
+        </section>
+
+        <section id="repository" class="project-section repository-section">
+          <span class="section-number">11</span>
+          <h2>Explore the implementation</h2>
+          <p>Browse my GitHub repositories for this kernel and related low-level systems work.</p>
+          <a class="repo-button" href="https://github.com/AdityaVMVS?tab=repositories" target="_blank" rel="noopener noreferrer">View repositories on GitHub <span>&nearr;</span></a>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer"><p>&copy; 2026 &middot; V.M.V.S. Aditya &middot; Semiconductor &amp; Embedded Portfolio</p></footer>
+  <script src="../project.js"></script>
+</body>
+</html>
