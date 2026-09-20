@@ -121,7 +121,7 @@ void* optimized_memcpy(void* dest, const void* src, size_t n) {
     return dest;
 }</code></pre></div>
 
-      <p>This is a simplified illustration of the block-copy idea rather than a production <code>memcpy</code> implementation, since arbitrary buffers can also have alignment and effective-type constraints in C.</p>
+      <p>This is a simplified illustration of the block-copy idea rather than a production <code>memcpy</code> implementation, since arbitrary buffers introduce alignment, aliasing, and effective-type considerations in C.</p>
 
       <p>This is the part that changed how I thought about the problem. The original main loop executes <code>n</code> times. The new main loop executes only <code>n / 32</code> times, then a small cleanup loop handles <code>n % 32</code> leftover bytes.</p>
 
@@ -131,11 +131,15 @@ void* optimized_memcpy(void* dest, const void* src, size_t n) {
         <p>So instead of making 100 passes through the main copy loop, the block loop runs only <strong>3 times</strong> to move 96 bytes, followed by 4 byte-sized cleanup copies.</p>
       </div>
 
-      <p>The main optimization here is reducing the number of loop iterations. In the original byte-by-byte version, copying 100 bytes requires 100 iterations. With 32-byte blocks, the main loop runs only 3 times to copy 96 bytes, followed by 4 cleanup iterations for the remaining bytes.</p>
+      <p>The main source-level change here is doing more work per loop iteration. In the original byte-by-byte version, copying 100 bytes requires 100 iterations. With 32-byte blocks, the main loop runs only 3 times to copy 96 bytes, followed by 4 cleanup iterations for the remaining bytes.</p>
 
       <p>So at the source-code level, this example goes from 100 explicit loop iterations to just 7 total, with only 3 iterations doing the bulk of the work. That reduces loop-control overhead such as comparisons, increments, and branches.</p>
 
-      <p>But that made me curious about what was actually happening underneath. I had reduced the loop iterations at the C level, but the processor does not execute C directly. The compiler still has to translate each 32-byte block copy into machine instructions. So I started wondering: <em>what does this optimized loop look like in assembly, and can it be improved further once we understand how the processor executes those instructions?</em></p>
+      <p>But that made me curious about what was happening underneath. I had reduced the loop iterations at the C level, but could the efficiency be improved even further? </p>
+
+      <p>The processor does not execute C directly. The compiler translates that code into machine instructions, which raised the next question for me: can we optimize the assembly itself? </p>
+
+      <p>To answer that, I first needed to understand how those instructions move through the processor pipeline and where stalls or unnecessary overhead can appear.</em></p>
 
 
       <h2>Before touching assembly, I had to understand the pipeline</h2>
@@ -163,8 +167,8 @@ void* optimized_memcpy(void* dest, const void* src, size_t n) {
       <p>With a clearer sense of both hazards, I went back to the copy loop to see what unrolling would actually change.</p>
 
       <h2>Trying to make memcpy faster in assembly itself</h2>
-      <p>To reason about that generated code, I started with the simplest case: a scalar word-copy loop on a 32-bit RISC-V core. Each <code>lw</code>/<code>sw</code> pair moves one 4-byte word, and eight such word copies make the same 32-byte block used in the C example.</p>
-      <p>Here is roughly what that plain word-copy loop looks like:</p>
+      <p>To reason about what the machine-level copy could look like, I started with the simplest case: a scalar word-copy loop on a 32-bit RISC-V core. Each <code>lw</code>/<code>sw</code> pair moves one 4-byte word, and eight such word copies make the same 32-byte block used in the C example.</p>
+      <p>For simplicity, assume the source and destination are suitably aligned for 32-bit word accesses. Here is roughly what that plain word-copy loop looks like:</p>
       <div class="code-panel"><div class="code-panel-bar"><span>Baseline word-copy loop</span><span class="code-language">RISC-V</span></div><pre><code>copy_loop:
     lw   t0, 0(a1)      ; load word from src   (a1 = src pointer)
     sw   t0, 0(a0)      ; store word to dst    (a0 = dst pointer)
@@ -172,7 +176,7 @@ void* optimized_memcpy(void* dest, const void* src, size_t n) {
     addi a1, a1, 4      ; src += 4
     addi a2, a2, -1     ; words-- (a2 = remaining word count)
     bnez a2, copy_loop  ; loop while words != 0</code></pre></div>
-      <p>Six instructions moving four bytes, repeated <code>n/4</code> times. Once I knew what to look for, loop unrolling became interesting because it could help with both problems at once.</p>
+      <p>Six instructions moving four bytes, repeated <code>n/4</code> times. Once I knew what to look for, loop unrolling became interesting because it clearly reduces loop-control overhead and can also provide more scheduling room for the load/store sequence, depending on the core's forwarding paths.</p>
 
       <div class="technique-card"><span class="technique-label">Technique — unroll the loop to match the 32-byte block</span><p>Instead of loading one word and immediately storing it, unrolling lets the loop load several independent words first and then store them. Here, eight 4-byte words make one 32-byte block, matching the C example:</p>
       <div class="code-panel"><div class="code-panel-bar"><span>32-byte unrolled copy loop</span><span class="code-language">RISC-V</span></div><pre><code>copy_loop:
@@ -199,7 +203,7 @@ void* optimized_memcpy(void* dest, const void* src, size_t n) {
     addi a2, a2, -1     ; one 32-byte block completed
     bnez a2, copy_loop  ; a2 = remaining block count</code></pre></div>
       <p>This rewrite helps with both issues. The matching stores are separated from their loads by independent work, which can give the pipeline more room to resolve load-to-store dependencies on a core where that pairing would otherwise stall. At the same time, one loop pass now moves the same 32 bytes represented by one <code>Block32</code> assignment in C, with a single branch and one set of pointer updates for the whole block. The C cleanup loop still handles any remaining <code>n % 32</code> bytes.</p>
-      <p>Seeing it laid out this way is what turned "unroll your loops" from a rule of thumb into something I could actually reason about. It addresses the load-use spacing and the branch-to-data ratio in the same move, even though how much that translates into real speedup still depends on the specific core it runs on.</p></div>
+      <p>Seeing it laid out this way is what turned "unroll your loops" from a rule of thumb into something I could actually reason about. It reduces loop-control overhead and can increase the spacing between related loads and stores, even though how much that translates into real speedup still depends on the specific core and its forwarding behavior.</p></div>
 
       <h2>Where this stops working</h2>
       <p>It would be easy to assume you can keep applying these ideas indefinitely and the loop just keeps getting faster. It does not, and the two reasons that matter most are hardware constraints that no amount of clever assembly gets around.</p>
