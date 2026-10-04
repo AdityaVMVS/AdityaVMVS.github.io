@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Device Is Too Slow: Hardware, Software, or Both? · V.M.V.S. Aditya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../blog.css">
+  <style>
+    /* Low-priority defaults let this attachment open on its own.
+       The original unlayered site styles still take precedence. */
+    @layer article-fallback {
+      :root { color-scheme: light dark; --paper: #faf9f6; --ink: #20201e; }
+      @media (prefers-color-scheme: dark) { :root { --paper: #151614; --ink: #eeeee8; } }
+      :root[data-theme="light"] { --paper: #faf9f6; --ink: #20201e; color-scheme: light; }
+      :root[data-theme="dark"] { --paper: #151614; --ink: #eeeee8; color-scheme: dark; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Montserrat', sans-serif; font-size: 16px; }
+      * { box-sizing: border-box; }
+      a { color: inherit; text-underline-offset: .2em; }
+      .site-header { max-width: 1140px; margin: auto; padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid color-mix(in srgb, currentColor 17%, transparent); }
+      .blog-brand { font-family: 'Space Grotesk', sans-serif; font-weight: 600; text-decoration: none; }
+      .nav { display: flex; gap: 25px; font-size: .85rem; }
+      .nav a { text-decoration: none; }
+      .article-shell { max-width: 880px; margin: auto; padding: 45px 40px 70px; }
+      .back-link { display: inline-block; font-size: .8rem; margin-bottom: 38px; text-decoration: none; }
+      .article-header { padding-bottom: 30px; margin-bottom: 36px; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+      .post-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+      .post-tags span { padding: 7px 12px; font-size: .69rem; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); border-radius: 30px; }
+      h1,h2,h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+      h1 { font-size: clamp(2.05rem, 5.5vw, 3.25rem); line-height: 1.1; letter-spacing: -.035em; margin: 24px 0; }
+      h2 { font-size: 1.85rem; line-height: 1.25; letter-spacing: -.025em; }
+      h3 { font-size: 1.18rem; line-height: 1.4; }
+      p,li { line-height: 1.78; }
+      p { margin: 0 0 1.35em; }
+      .article-summary { font-size: 1.04rem; line-height: 1.75; opacity: .8; }
+      time { font-size: .73rem; opacity: .65; }
+      .footer { max-width: 1140px; margin: auto; padding: 26px 40px; border-top: 1px solid color-mix(in srgb, currentColor 17%, transparent); font-size: .75rem; }
+      @media(max-width:600px) { .site-header {padding:22px 20px;flex-wrap:wrap;} .article-shell {padding:30px 20px 50px;} .nav {gap:17px;} h2 {font-size:1.55rem;} .footer {padding:22px 20px;} }
+    }
+
+    /* Article details only. The page, header, typography and footer use the site's CSS. */
+    .blog-page .article-body > p { margin-bottom: 1.35em; line-height: 1.78; }
+    .blog-page .article-body > h2 { margin-top: 2.1em; margin-bottom: .85em; }
+    .blog-page .article-body > h2:first-of-type { margin-top: 0; }
+    .blog-page .article-body p code,
+    .blog-page .article-body li code { padding: .09em .3em; border-radius: .25em; background: color-mix(in srgb, currentColor 10%, transparent); font-size: .91em; }
+    .blog-page .article-body p strong { font-weight: 700; }
+
+    .blog-page .code-panel { overflow: hidden; margin: 1.4em 0 1.8em; border: 1px solid color-mix(in srgb, currentColor 23%, transparent); border-radius: 12px; }
+    .blog-page .code-panel-bar { display: flex; justify-content: space-between; align-items: center; gap: 1em; padding: .75em 1.15em; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); background: color-mix(in srgb, currentColor 7%, transparent); font-size: .82em; font-weight: 700; }
+    .blog-page .code-language { opacity: .7; letter-spacing: .08em; text-transform: uppercase; }
+    .blog-page .code-panel pre { max-width: 100%; margin: 0; padding: 1.2em 1.4em; overflow-x: auto; border: 0; border-radius: 0; font-size: .88em; line-height: 1.7; }
+    .blog-page .code-panel pre code { background: transparent; padding: 0; font: inherit; }
+
+    .blog-page .pipeline-card { margin: 1.6em 0 1.85em; padding: 1.4em; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); border-radius: 12px; background: color-mix(in srgb, currentColor 5%, transparent); }
+    .blog-page .pipeline-label { display: block; margin-bottom: 1em; font-size: .78em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .blog-page .pipeline-card .project-steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6em; margin: 0; padding: 0; list-style: none; counter-reset: stage; }
+    .blog-page .pipeline-card .project-steps li { min-width: 0; padding: 1em .8em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 8px; background: color-mix(in srgb, currentColor 7%, transparent); counter-increment: stage; }
+    .blog-page .pipeline-card .project-steps li::before { display: block; content: "0" counter(stage); margin-bottom: .6em; font-size: .72em; font-weight: 700; opacity: .65; }
+    .blog-page .pipeline-card .project-steps strong { display: block; margin-bottom: .5em; font-size: .86em; line-height: 1.4; }
+    .blog-page .pipeline-card .project-steps p { margin: 0; font-size: .82em; line-height: 1.5; }
+
+    .blog-page .hazard-card { margin: 1.25em 0; padding: 1.1em 1.35em .05em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-left: 4px solid currentColor; border-radius: 9px; background: color-mix(in srgb, currentColor 5%, transparent); }
+    .blog-page .hazard-card.control { border-left-style: dashed; }
+    .blog-page .hazard-card p { margin: 0 0 1em; line-height: 1.78; }
+    .blog-page .hazard-card .hazard-example { padding: .6em .9em; border-radius: 6px; background: color-mix(in srgb, currentColor 8%, transparent); font-size: .92em; }
+    .blog-page .technique-card { margin: 1.3em 0; padding: 1.1em 1.35em .05em; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 9px; background: color-mix(in srgb, currentColor 4%, transparent); }
+    .blog-page .technique-card p { margin: 0 0 1em; line-height: 1.78; }
+    .blog-page .technique-label { display: block; margin-top: 0; margin-bottom: .7em; font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+    .blog-page .detail-list { display: grid; gap: .75em; padding: 0; list-style: none; }
+    .blog-page .detail-list li { padding: 1em 1.2em; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 8px; background: color-mix(in srgb, currentColor 4%, transparent); line-height: 1.7; }
+    .blog-page .takeaway-card { margin-top: 1.3em; padding: 1.3em 1.5em .05em; border: 1px solid color-mix(in srgb, currentColor 24%, transparent); border-radius: 10px; background: color-mix(in srgb, currentColor 6%, transparent); }
+    .blog-page .takeaway-card p { margin: 0 0 1.15em; line-height: 1.78; }
+
+    @media (max-width: 760px) { .blog-page .pipeline-card .project-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 480px) { .blog-page .pipeline-card { padding: 1em; } .blog-page .pipeline-card .project-steps { grid-template-columns: 1fr; } .blog-page .code-panel pre { padding: 1em; } }
+  
+    .blog-page .article-body { min-width: 0; }
+    .blog-page .article-body h2 { scroll-margin-top: 24px; }
+    .blog-page .visual-card { margin: 1.7em 0 2em; padding: 1.3em; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); border-radius: 12px; background: color-mix(in srgb, currentColor 4%, transparent); }
+    .blog-page .visual-heading h3 { margin: .2em 0 .9em; }
+    .blog-page .visual-heading .technique-label { margin: 0; font-size: .68em; opacity: .6; }
+    .blog-page figcaption { margin-top: 1.05em; padding-top: 1em; border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent); font-size: .76em; line-height: 1.65; opacity: .8; }
+    .blog-page .diagram-scroll { overflow-x: auto; max-width: 100%; scrollbar-width: thin; }
+    .blog-page .visual-card svg { width: 100%; height: auto; display: block; min-width: 540px; color: inherit; font-family: 'Space Grotesk', sans-serif; }
+    .blog-page .visual-card svg text { fill: currentColor; }
+    .blog-page .node { fill: color-mix(in srgb, currentColor 5%, transparent); stroke: currentColor; stroke-opacity: .35; }
+    .blog-page .accent-node { fill: color-mix(in srgb, currentColor 14%, transparent); stroke: currentColor; stroke-opacity: .65; }
+    .blog-page .connector { fill: none; stroke: currentColor; stroke-width: 1.8; opacity: .65; }
+    .blog-page .gridline { stroke: currentColor; stroke-opacity: .12; }
+    .blog-page .muted { opacity: .65; }
+    .blog-page .solid { fill: currentColor; opacity: .8; }
+    .blog-page .outlined { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 5 4; }
+    .blog-page .toc { display: flex; flex-wrap: wrap; gap: .55em; margin: 1.5em 0 2.2em; }
+    .blog-page .toc a { padding: .6em .9em; border: 1px solid color-mix(in srgb,currentColor 20%,transparent); border-radius: 6px; font-size: .75em; text-decoration: none; }
+    .blog-page .bar-row { display: grid; grid-template-columns: 135px 1fr 58px; align-items: center; gap: 12px; margin: .8em 0; font-size: .82em; }
+    .blog-page .bar-track { height: 22px; background: color-mix(in srgb,currentColor 7%,transparent); border-radius: 4px; overflow: hidden; }
+    .blog-page .bar-fill { display: block; height: 100%; background: currentColor; opacity: .72; border-radius: 4px; }
+    .blog-page .bar-row:nth-child(even) .bar-fill { opacity: .48; }
+    .blog-page .bar-value { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .blog-page .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .7em; margin-top: 1.4em; }
+    .blog-page .stat { padding: .9em; border: 1px solid color-mix(in srgb,currentColor 20%,transparent); border-radius: 8px; }
+    .blog-page .stat strong { display: block; font: 600 1.65em 'Space Grotesk',sans-serif; }
+    .blog-page .stat small { display: block; margin-top: .4em; font-size: .7em; line-height: 1.5; }
+    .blog-page .legend { display: flex; flex-wrap: wrap; gap: 1.2em; font-size: .76em; margin: .6em 0 1.1em; }
+    .blog-page .legend span::before { content: ''; display: inline-block; width: .85em; height: .85em; margin-right: .4em; vertical-align: -.05em; background: currentColor; opacity: .8; }
+    .blog-page .legend .transfer::before { opacity: .25; }
+    .blog-page .timeline-row { display: grid; grid-template-columns: 115px 1fr 54px; gap: 10px; align-items: center; margin: 1.1em 0; font-size: .8em; }
+    .blog-page .timeline-track { height: 36px; display: flex; }
+    .blog-page .timeline-track span { display: flex; align-items: center; justify-content: center; border: 1px solid color-mix(in srgb,currentColor 30%,transparent); font-size: .9em; white-space: nowrap; min-width: 0; }
+    .blog-page .timeline-track .compute { background: color-mix(in srgb,currentColor 14%,transparent); }
+    .blog-page .timeline-track .transfer { background: color-mix(in srgb,currentColor 4%,transparent); }
+    .blog-page .control-label { display: flex; justify-content: space-between; gap: 12px; font-size: .82em; margin: 1.2em 0 .5em; }
+    .blog-page input[type=range] { width: 100%; accent-color: currentColor; }
+    .blog-page .interactive-result { margin: .85em 0 0; font-size: .81em; line-height: 1.6; }
+    .blog-page .table-wrap { overflow-x:auto; margin: 1.4em 0; }
+    .blog-page table { width:100%; border-collapse:collapse; text-align:left; font-size:.82em; line-height:1.65; }
+    .blog-page th,.blog-page td { border-bottom:1px solid color-mix(in srgb,currentColor 18%,transparent); padding:.85em .7em; vertical-align:top; }
+    .blog-page th { background:color-mix(in srgb,currentColor 6%,transparent); font-weight:700; }
+    .blog-page .source-ref { font-size:.75em; white-space:nowrap; }
+    .blog-page .source-list { padding-left:1.4em; font-size:.8em; }
+    .blog-page .source-list li { margin-bottom:.7em; overflow-wrap:anywhere; }
+    .blog-page a:focus-visible,.blog-page input:focus-visible,.blog-page [tabindex]:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
+    @media(max-width:600px) { .blog-page .visual-card {padding:1em;} .blog-page .bar-row {grid-template-columns:105px 1fr 50px;gap:8px;font-size:.74em;} .blog-page .stat {padding:.7em;} .blog-page .stat strong {font-size:1.35em;} .blog-page .timeline-row {grid-template-columns:1fr 48px;} .blog-page .timeline-row > .timeline-label {grid-column:1 / -1;} .blog-page .timeline-track span {font-size:.85em;} }
+    @media print { .site-header,.back-link,.toc,.footer,.control-label,input[type=range] {display:none!important;} .visual-card,.technique-card,.takeaway-card {break-inside:avoid;} .article-shell {max-width:none;padding:0;} .diagram-scroll {overflow:visible;} body {background:white;color:black;} }
+
+  
+    /* Keep this article's navigation pinned and stable, including when the site's
+       shared stylesheet or scroll script applies a compact-header state. */
+    :root { --article-header-height: 76px; scroll-padding-top: calc(var(--article-header-height) + 24px); }
+    body.blog-page { padding-top: var(--article-header-height) !important; }
+    .blog-page > .site-header.blog-header { position: fixed !important; top: 0 !important; right: 0 !important; left: 0 !important; bottom: auto !important; width: 100% !important; max-width: none !important; height: var(--article-header-height) !important; min-height: var(--article-header-height) !important; margin: 0 !important; padding: 0 !important; z-index: 1000 !important; display: block !important; transform: none !important; scale: none !important; zoom: 1 !important; transition: background-color .2s, color .2s !important; background: var(--article-header-surface, var(--paper, #faf9f6)) !important; color: var(--article-header-ink, inherit) !important; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent) !important; box-sizing: border-box !important; }
+    .blog-page > .site-header.blog-header .article-nav-shell { max-width: 1140px; width: 100%; height: 100% !important; margin: 0 auto; padding: 0 40px !important; display: flex; align-items: center; justify-content: space-between; gap: 24px; box-sizing: border-box; }
+    .blog-page > .site-header.blog-header .blog-brand { font-size: 1rem !important; line-height: 1.35 !important; margin: 0 !important; white-space: nowrap; flex-shrink: 0; font-family: 'Space Grotesk', sans-serif; }
+    .blog-page > .site-header.blog-header .nav { display: flex !important; position: static !important; width: auto !important; height: auto !important; gap: 24px !important; align-items: center; padding: 0 !important; margin: 0 !important; }
+    .blog-page > .site-header.blog-header .nav a, .blog-page > .site-header.blog-header .article-theme-button { font-size: .82rem !important; line-height: 1.35 !important; white-space: nowrap; }
+    .blog-page > .site-header.blog-header *, .blog-page > .site-header.blog-header::before, .blog-page > .site-header.blog-header::after { transform: none !important; scale: none !important; zoom: 1 !important; }
+    .blog-page .article-theme-button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border: 1px solid color-mix(in srgb,currentColor 24%,transparent); border-radius: 7px; font-family: inherit; font-weight: 500; color: inherit; background: transparent; cursor: pointer; }
+    .blog-page .article-theme-button:hover { background: color-mix(in srgb,currentColor 7%,transparent); }
+    .blog-page .article-theme-button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+    html[data-article-theme="light"] body.blog-page { background: #faf9f6 !important; color: #20201e !important; --paper: #faf9f6; --ink: #20201e; }
+    html[data-article-theme="dark"] body.blog-page { background: #151614 !important; color: #eeeee8 !important; --paper: #151614; --ink: #eeeee8; }
+    .blog-page .key-block { margin: 1.5em 0; padding: 1em 1.3em; border: 1px solid color-mix(in srgb,currentColor 20%,transparent); border-left: 3px solid currentColor; border-radius: 9px; background: color-mix(in srgb,currentColor 4%,transparent); }
+    .blog-page .key-block p { margin: 0; font-size: 1.02em; line-height: 1.7; }
+    .blog-page .key-line { padding: .75em 1em; border-radius: 7px; background: color-mix(in srgb,currentColor 5%,transparent); font-family: 'Space Grotesk',sans-serif; }
+    .blog-page .article-body > h3 { font-size: 1.25rem; margin-top: 1.8em; margin-bottom: .75em; }
+    .blog-page .article-body > h4 { font-family: 'Space Grotesk',sans-serif; font-size: 1.1rem; margin-top: 1.6em; }
+    .blog-page .comparison-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin: 1.4em 0; }
+    .blog-page .comparison-grid .technique-card { margin: 0; min-width: 0; }
+    .blog-page .memory-slab, .blog-page .memory-parts span { padding: .9em; border: 1px solid color-mix(in srgb,currentColor 25%,transparent); border-radius: 6px; font: 500 .82em 'Space Grotesk',sans-serif; background: color-mix(in srgb,currentColor 7%,transparent); margin: 1em 0; text-align: center; }
+    .blog-page .memory-parts { display:flex; gap:8px; }
+    .blog-page .memory-parts span {flex:1;}
+    .blog-page .flow-block { margin: 1.4em 0; padding: 1.2em; border: 1px solid color-mix(in srgb,currentColor 22%,transparent); border-radius: 10px; background: color-mix(in srgb,currentColor 4%,transparent); }
+    .blog-page .flow-row { display:flex; flex-wrap:wrap; gap:24px; align-items: stretch; }
+    .blog-page .flow-row > span { flex: 1 1 90px; position:relative; padding:.9em .55em; border:1px solid color-mix(in srgb,currentColor 25%,transparent); border-radius:6px; text-align:center; font:500 .8em/1.5 'Space Grotesk',sans-serif; }
+    .blog-page .flow-row > span:not(:last-child)::after { content:'→'; position:absolute; right:-20px; top:50%; transform:translateY(-50%); }
+    .blog-page .flow-caption, .blog-page .visual-note { font-size:.76em; line-height:1.65; opacity:.78; margin:.9em 0 0; }
+    .blog-page .tiny-transfers { display:flex;flex-wrap:wrap;gap:6px;margin:1em 0; }
+    .blog-page .tiny-transfers span {padding:.5em;border:1px solid color-mix(in srgb,currentColor 30%,transparent);border-radius:4px;font-size:.8em;}
+    @media(max-width:600px) { :root { --article-header-height: 104px; } .blog-page > .site-header.blog-header .article-nav-shell { padding: 12px 20px !important; flex-direction: column; gap: 8px; justify-content: center; } .blog-page > .site-header.blog-header .nav { gap: 18px !important; } .blog-page > .site-header.blog-header .blog-brand { font-size: 1rem !important; } .blog-page .comparison-grid {grid-template-columns:1fr;} .blog-page .flow-row {flex-direction:column;gap:23px;} .blog-page .flow-row > span {flex:auto;} .blog-page .flow-row > span:not(:last-child)::after {content:'↓';right:50%;top:auto;bottom:-24px;transform:translateX(50%);} }
+    @media print { body.blog-page { padding-top:0 !important; } .blog-page > .site-header.blog-header {display:none !important;} .comparison-grid {break-inside:avoid;} }
+
+  </style>
+</head>
+<body class="blog-page">
+  <header class="site-header blog-header"><div class="article-nav-shell"><a class="blog-brand" href="../index.html">V.M.V.S. Aditya</a><nav class="nav" aria-label="Site navigation"><a href="../index.html">Portfolio</a><a href="index.html">All blogs</a><button class="article-theme-button" id="article-theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20.8 14.2A9 9 0 0 1 9.8 3.2 9 9 0 1 0 20.8 14.2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>Dark mode</span></button></nav></div></header>
+  <main class="article-shell">
+    <a class="back-link" href="index.html">← Back to all blogs</a>
+    <article class="article-body"><header class="article-header"><div class="post-tags"><span>Computer Architecture</span><span>HW + SW</span><span>Performance</span></div><h1>Your Device Is Too Slow: Should You Change the Hardware, Software, or Both?</h1><p class="article-summary">A practical look at hardware, software, and the data movement between them, with clear examples of where performance is won or lost.</p><time datetime="2026-10-04">October 4, 2026 · 15 min read</time></header>
+<p>Imagine you are working on a device and suddenly receive a new requirement:</p>
+<blockquote class="key-block"><p>“The system needs to run faster. Reduce the execution time.”</p></blockquote>
+<p>The first thought might be:</p>
+<p class="key-line"><strong>Do we need a faster CPU? More cores? A GPU? More memory?</strong></p>
+<p>Maybe.</p>
+<p>But performance problems are rarely solved by simply adding faster hardware.</p>
+<p>A system can be slow because of the hardware, the software, or because the software is not using the hardware efficiently. In many real products, some of the biggest performance improvements come from the third category: <strong>HW-SW optimization</strong>.</p>
+<p>So before changing anything, the first question should be:</p>
+<p class="key-line"><strong>Where is the system actually spending its time?</strong></p>
+<h2 id="step-1-find-the-bottleneck">Step 1: Find the Bottleneck</h2>
+<p>Suppose an application takes <strong>100 ms</strong> to complete one operation.</p>
+<p>Imagine the breakdown is:</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Illustrative chart</span><h3>Where does 100 ms go?</h3></div>
+<div class="bar-row"><span>Computation</span><div class="bar-track" aria-hidden="true"><span class="bar-fill" style="width:33.33333333333333%"></span></div><span class="bar-value">20 ms</span></div><div class="bar-row"><span>Memory wait</span><div class="bar-track" aria-hidden="true"><span class="bar-fill" style="width:100.0%"></span></div><span class="bar-value">60 ms</span></div><div class="bar-row"><span>Data transfer</span><div class="bar-track" aria-hidden="true"><span class="bar-fill" style="width:25.0%"></span></div><span class="bar-value">15 ms</span></div><div class="bar-row"><span>Other overhead</span><div class="bar-track" aria-hidden="true"><span class="bar-fill" style="width:8.333333333333332%"></span></div><span class="bar-value">5 ms</span></div><div class="stat-grid"><div class="stat"><strong>100 ms</strong><small>Original operation</small></div><div class="stat"><strong>90 ms</strong><small>With 2× faster computation</small></div><div class="stat"><strong>1.11×</strong><small>Overall speedup</small></div></div><figcaption>Illustrative values, not measurements. Only computation gets 2× faster. The total falls from 100 ms to 90 ms: 10% less execution time, or about 1.11× overall speedup. The categories are treated as non-overlapping in this example.</figcaption></figure>
+<p>Now imagine we replace the CPU with one that performs calculations twice as fast.</p>
+<p>The 20 ms computation might fall to around 10 ms.</p>
+<p>But the total execution time only changes from:</p>
+<p class="key-line"><strong>100 ms → 90 ms</strong></p>
+<p>We bought a faster processor, but the application improved by only about 10%.</p>
+<p>Why?</p>
+<p>Because the CPU was not the main problem.</p>
+<p>This is known as <strong>Amdahl's Law</strong>: you can only speed up the part you improve.</p>
+<p>This is why performance engineering should normally begin with <strong>profiling</strong> rather than hardware changes.</p>
+<p>We need to determine whether the system is:</p>
+<p><strong>compute-bound</strong>, <strong>memory-bound</strong>, <strong>I/O-bound</strong>, <strong>communication-bound</strong>, or <strong>synchronization-bound</strong>.</p>
+<p>Once we know that, we can decide where to optimize.</p>
+<p>On a CPU, <code>perf</code> shows where the time goes. On a GPU, Nsight Systems does. On a microcontroller, a cycle counter does.</p>
+<h2 id="1-hardware-optimization">1. Hardware Optimization</h2>
+<p>The main focus of this blog is to discuss more on the SW, HW-SW optimization. There are many hardware-level techniques for improving performance, but let us briefly look at two simple techniques.</p>
+<h3 id="pipelining">Pipelining</h3>
+<p>Instead of waiting for one instruction to completely finish before starting the next one, processors divide execution into stages.</p>
+<p>For example:</p>
+<p class="key-line"><strong>Fetch → Decode → Execute → Memory → Write Back</strong></p>
+<p>Different instructions can occupy different stages simultaneously.</p>
+<p>Think of it like an assembly line.</p>
+<p>Without pipelining:</p>
+<p class="key-line"><strong>Item 1 finishes → Item 2 starts → Item 3 starts</strong></p>
+<p>With pipelining:</p>
+<p class="key-line"><strong>Item 1 → Item 2 → Item 3</strong></p>
+<p>are moving through different stages at the same time.</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Pipeline schedule</span><h3>Overlap instructions, increase throughput</h3></div><div class="table-wrap"><table aria-label="Ideal five-stage pipeline timing"><thead><tr><th>Instruction</th><th>C1</th><th>C2</th><th>C3</th><th>C4</th><th>C5</th><th>C6</th><th>C7</th></tr></thead><tbody><tr><th>I1</th><td>IF</td><td>ID</td><td>EX</td><td>MEM</td><td>WB</td><td>·</td><td>·</td></tr><tr><th>I2</th><td>·</td><td>IF</td><td>ID</td><td>EX</td><td>MEM</td><td>WB</td><td>·</td></tr><tr><th>I3</th><td>·</td><td>·</td><td>IF</td><td>ID</td><td>EX</td><td>MEM</td><td>WB</td></tr></tbody></table></div><figcaption>Ideal educational five-stage pipeline, with no stalls. IF = fetch, ID = decode, EX = execute, MEM = memory access, WB = write back. Once full, it can complete one instruction per cycle; one instruction still spans five stages.</figcaption></figure>
+<p>Pipelining therefore improves <strong>throughput</strong>, although it does not necessarily reduce the latency of one individual instruction.</p>
+<h3 id="more-parallel-hardware">More Parallel Hardware</h3>
+<p>Another solution is adding more hardware capable of working simultaneously.</p>
+<p>This could mean:</p>
+<p>more CPU cores, wider SIMD units, additional execution units, more memory channels, GPUs, AI accelerators, or dedicated hardware blocks.</p>
+<p>Instead of processing:</p>
+<p class="key-line"><strong>A → B → C → D</strong></p>
+<p>we may be able to process:</p>
+<p class="key-line"><strong>A | B | C | D</strong></p>
+<p>simultaneously.</p>
+<p>However, parallel hardware helps only when the workload itself contains enough parallelism.</p>
+<p>Adding 64 cores to a program that is mostly sequential will not magically make it 64 times faster.</p>
+<p>And this is where software becomes extremely important.</p>
+<h2 id="2-software-optimization-often-the-first-place-to-look">2. Software Optimization: Often the First Place to Look</h2>
+<p>Changing software is usually cheaper and easier than redesigning hardware.</p>
+<p>More importantly, inefficient software can waste even extremely powerful hardware.</p>
+<h3 id="start-with-the-algorithm">Start With the Algorithm</h3>
+<p>The largest software improvement often comes from doing <strong>less work</strong>, not doing the same work faster.</p>
+<p>Suppose an algorithm processes <code>N</code> elements.</p>
+<p>An inefficient implementation may require approximately:</p>
+<p class="key-line"><strong>N² operations</strong></p>
+<p>while a better algorithm may require:</p>
+<p class="key-line"><strong>N log N operations</strong></p>
+<p>For small inputs, the difference may not matter.</p>
+<p>For millions of elements, it can completely dominate performance.</p>
+<p>This is why optimizing a bad algorithm with threads, GPUs, or assembly code is often the wrong starting point.</p>
+<p>First ask:</p>
+<p class="key-line"><strong>Can we reduce the amount of computation itself?</strong></p>
+<h3 id="memory-access-can-matter-more-than-computation">Memory Access Can Matter More Than Computation</h3>
+<p>Processors are extremely fast compared with main memory.</p>
+<p>Because of this, a program can spend a surprising amount of time waiting for data.</p>
+<p>For scale: an L1 cache hit takes about a nanosecond, while DRAM takes roughly 60 to 100 nanoseconds (rough figures that vary by system).</p>
+<p>Consider accessing an array sequentially:</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 01</span><h3>Access patterns change memory behavior</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Access patterns change memory behavior. Scroll horizontally on small screens."><svg viewBox="0 0 720 220" role="img" aria-label="Access patterns change memory behavior"><title>Access patterns change memory behavior</title><desc>Left: sequential A[0], A[1], A[2], A[3], A[4]. Right: scattered A[0], A[10000], A[237], A[500000], A[45].</desc><defs><marker id="diagram-arrow-2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><text x="180" y="25" text-anchor="middle" font-size="18" font-weight="600" class="">Sequential</text><text x="540" y="25" text-anchor="middle" font-size="18" font-weight="600" class="">Scattered</text><rect class="node" x="25" y="60" width="70" height="52" rx="9"/><text x="60.0" y="91.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[0]</text><rect class="node" x="103" y="60" width="70" height="52" rx="9"/><text x="138.0" y="91.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[1]</text><rect class="node" x="181" y="60" width="70" height="52" rx="9"/><text x="216.0" y="91.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[2]</text><rect class="node" x="259" y="60" width="70" height="52" rx="9"/><text x="294.0" y="91.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[3]</text><text x="177" y="161" text-anchor="middle" font-size="15" font-weight="500" class="muted">Nearby elements</text><rect class="node" x="385" y="60" width="70" height="52" rx="9"/><text x="420.0" y="91.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[0]</text><rect class="node" x="463" y="60" width="70" height="52" rx="9"/><text x="498.0" y="91.0" text-anchor="middle" font-size="12" font-weight="600" class="">A[10000]</text><rect class="node" x="541" y="60" width="70" height="52" rx="9"/><text x="576.0" y="91.0" text-anchor="middle" font-size="15.2" font-weight="600" class="">A[237]</text><rect class="node" x="619" y="60" width="70" height="52" rx="9"/><text x="654.0" y="91.0" text-anchor="middle" font-size="12" font-weight="600" class="">A[500000]</text><text x="537" y="161" text-anchor="middle" font-size="15" font-weight="500" class="muted">Different regions</text><text x="180" y="195" text-anchor="middle" font-size="14" font-weight="500" class="muted">Then A[4], …</text><text x="540" y="195" text-anchor="middle" font-size="14" font-weight="500" class="muted">Then A[45], …</text></svg></div><figcaption>Nearby elements can reuse a fetched cache line. Scattered accesses may need more lines; the actual cost depends on cache hits, element size, and reuse.</figcaption></figure>
+<p>This is generally cache-friendly.</p>
+<p>Now imagine accessing:</p>
+<div class="code-panel"><div class="code-panel-bar"><span>Same work, different order</span><span class="code-language">C</span></div><pre><code>// Sequential
+for (size_t i = 0; i &lt; N; i++) sum += A[i];
+
+// Scattered (idx[] is a shuffled list of indices)
+for (size_t i = 0; i &lt; N; i++) sum += A[idx[i]];</code></pre></div>
+
+<p>The CPU may constantly fetch new cache lines from memory.</p>
+<p>The calculations might be simple, but memory access becomes expensive.</p>
+<p>This is why techniques such as <strong>locality, blocking and tiling</strong> are widely used.</p>
+<p>Instead of processing a huge data structure randomly, software works on a smaller region that can remain inside the CPU cache.</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 02</span><h3>Keep useful data close</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Keep useful data close. Scroll horizontally on small screens."><svg viewBox="0 0 720 280" role="img" aria-label="Keep useful data close"><title>Keep useful data close</title><desc>Two matrices divided into tiles. The right matrix highlights a small block to be reused before processing the next block.</desc><defs><marker id="diagram-arrow-3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><text x="180" y="28" text-anchor="middle" font-size="18" font-weight="600" class="">Whole problem</text><text x="530" y="28" text-anchor="middle" font-size="18" font-weight="600" class="">Work on a reusable tile</text><rect class="node" x="45" y="55" width="59" height="37" rx="4"/><rect class="node" x="110" y="55" width="59" height="37" rx="4"/><rect class="node" x="175" y="55" width="59" height="37" rx="4"/><rect class="node" x="240" y="55" width="59" height="37" rx="4"/><rect class="node" x="45" y="98" width="59" height="37" rx="4"/><rect class="node" x="110" y="98" width="59" height="37" rx="4"/><rect class="node" x="175" y="98" width="59" height="37" rx="4"/><rect class="node" x="240" y="98" width="59" height="37" rx="4"/><rect class="node" x="45" y="141" width="59" height="37" rx="4"/><rect class="node" x="110" y="141" width="59" height="37" rx="4"/><rect class="node" x="175" y="141" width="59" height="37" rx="4"/><rect class="node" x="240" y="141" width="59" height="37" rx="4"/><rect class="node" x="45" y="184" width="59" height="37" rx="4"/><rect class="node" x="110" y="184" width="59" height="37" rx="4"/><rect class="node" x="175" y="184" width="59" height="37" rx="4"/><rect class="node" x="240" y="184" width="59" height="37" rx="4"/><rect class="accent-node" x="395" y="55" width="59" height="37" rx="4"/><rect class="accent-node" x="460" y="55" width="59" height="37" rx="4"/><rect class="node" x="525" y="55" width="59" height="37" rx="4"/><rect class="node" x="590" y="55" width="59" height="37" rx="4"/><rect class="accent-node" x="395" y="98" width="59" height="37" rx="4"/><rect class="accent-node" x="460" y="98" width="59" height="37" rx="4"/><rect class="node" x="525" y="98" width="59" height="37" rx="4"/><rect class="node" x="590" y="98" width="59" height="37" rx="4"/><rect class="node" x="395" y="141" width="59" height="37" rx="4"/><rect class="node" x="460" y="141" width="59" height="37" rx="4"/><rect class="node" x="525" y="141" width="59" height="37" rx="4"/><rect class="node" x="590" y="141" width="59" height="37" rx="4"/><rect class="node" x="395" y="184" width="59" height="37" rx="4"/><rect class="node" x="460" y="184" width="59" height="37" rx="4"/><rect class="node" x="525" y="184" width="59" height="37" rx="4"/><rect class="node" x="590" y="184" width="59" height="37" rx="4"/><path class="connector" d="M322 139 L379 139" marker-end="url(#diagram-arrow-3)"/><text x="180" y="257" text-anchor="middle" font-size="15" font-weight="500" class="muted">Large working set</text><text x="530" y="257" text-anchor="middle" font-size="15" font-weight="500" class="muted">Reuse before moving on</text></svg></div><figcaption>Conceptual tiling illustration. The tile size depends on data types, cache capacity, associativity, and the number of arrays used together.</figcaption></figure>
+<p>Intel, for example, describes cache blocking as an important optimization because processors move data in cache lines and benefit when nearby data is reused before being evicted. <a class="source-ref" href="#ref-blocking">[1]</a></p>
+<h3 id="avoid-unnecessary-data-copies">Avoid Unnecessary Data Copies</h3>
+<p>Consider:</p>
+<div class="flow-block "><div class="flow-row"><span>Source memory</span><span>CPU staging</span><span>Temporary buffer</span><span>Another buffer</span><span>GPU memory</span></div><p class="flow-caption">Each additional copy consumes time and bandwidth. Remove copies that the workload does not need.</p></div>
+<p>If the system copies gigabytes of data repeatedly, those copies can become more expensive than the computation itself.</p>
+<p>Better designs try to reuse buffers, operate in place when safe, use DMA when appropriate, keep data near the processor that needs it, and avoid repeatedly moving the same data between CPU and accelerator memory.</p>
+<p>This becomes especially important when GPUs are involved.</p>
+<p>NVIDIA specifically recommends minimizing transfers between CPU memory and GPU memory because host-to-device communication can be much slower than accessing memory already local to the GPU.</p>
+<p>Sometimes performing a slightly slower calculation on the GPU can still make the <strong>whole application faster</strong> if it avoids copying the data back to the CPU.</p>
+<p>That is an important HW-SW optimization principle:</p>
+<p class="key-line"><strong>Do not optimize one function in isolation. Optimize the complete data path.</strong></p>
+<h3 id="use-parallelism-carefully">Use Parallelism Carefully</h3>
+<p>Suppose you have 48 CPU cores.</p>
+<p>Creating 48 threads sounds like the obvious solution.</p>
+<p>But imagine all 48 threads continuously update the same shared variable.</p>
+<p>Now they have to synchronize.</p>
+<p>Locks, atomic operations, cache coherence traffic, and scheduling overhead can reduce the expected performance.</p>
+<p>Sometimes:</p>
+<p class="key-line"><strong>16 well-designed threads</strong></p>
+<p>can outperform:</p>
+<p class="key-line"><strong>48 badly communicating threads.</strong></p>
+<p>Good parallel software tries to divide work so that each thread operates mostly on its own data and communicates only when necessary.</p>
+<h3 id="vectorization">Vectorization</h3>
+<p>Modern CPUs can perform one instruction on multiple pieces of data using SIMD instructions.</p>
+<p>Instead of conceptually doing:</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 03</span><h3>Several values, one instruction</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Several values, one instruction. Scroll horizontally on small screens."><svg viewBox="0 0 720 295" role="img" aria-label="Several values, one instruction"><title>Several values, one instruction</title><desc>Four separate scalar additions are compared to one vector addition that adds four corresponding A and B elements.</desc><defs><marker id="diagram-arrow-4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><text x="180" y="25" text-anchor="middle" font-size="18" font-weight="600" class="">Scalar operations</text><text x="540" y="25" text-anchor="middle" font-size="18" font-weight="600" class="">One vector instruction</text><rect class="node" x="65" y="50" width="230" height="37" rx="9"/><text x="180.0" y="73.5" text-anchor="middle" font-size="17" font-weight="600" class="">A0 + B0 = C0</text><rect class="node" x="65" y="97" width="230" height="37" rx="9"/><text x="180.0" y="120.5" text-anchor="middle" font-size="17" font-weight="600" class="">A1 + B1 = C1</text><rect class="node" x="65" y="144" width="230" height="37" rx="9"/><text x="180.0" y="167.5" text-anchor="middle" font-size="17" font-weight="600" class="">A2 + B2 = C2</text><rect class="node" x="65" y="191" width="230" height="37" rx="9"/><text x="180.0" y="214.5" text-anchor="middle" font-size="17" font-weight="600" class="">A3 + B3 = C3</text><rect class="node" x="386" y="66" width="70" height="43" rx="9"/><text x="421.0" y="92.5" text-anchor="middle" font-size="17" font-weight="600" class="">A0</text><rect class="node" x="386" y="142" width="70" height="43" rx="9"/><text x="421.0" y="168.5" text-anchor="middle" font-size="17" font-weight="600" class="">B0</text><rect class="accent-node" x="386" y="229" width="70" height="43" rx="9"/><text x="421.0" y="255.5" text-anchor="middle" font-size="17" font-weight="600" class="">C0</text><rect class="node" x="464" y="66" width="70" height="43" rx="9"/><text x="499.0" y="92.5" text-anchor="middle" font-size="17" font-weight="600" class="">A1</text><rect class="node" x="464" y="142" width="70" height="43" rx="9"/><text x="499.0" y="168.5" text-anchor="middle" font-size="17" font-weight="600" class="">B1</text><rect class="accent-node" x="464" y="229" width="70" height="43" rx="9"/><text x="499.0" y="255.5" text-anchor="middle" font-size="17" font-weight="600" class="">C1</text><rect class="node" x="542" y="66" width="70" height="43" rx="9"/><text x="577.0" y="92.5" text-anchor="middle" font-size="17" font-weight="600" class="">A2</text><rect class="node" x="542" y="142" width="70" height="43" rx="9"/><text x="577.0" y="168.5" text-anchor="middle" font-size="17" font-weight="600" class="">B2</text><rect class="accent-node" x="542" y="229" width="70" height="43" rx="9"/><text x="577.0" y="255.5" text-anchor="middle" font-size="17" font-weight="600" class="">C2</text><rect class="node" x="620" y="66" width="70" height="43" rx="9"/><text x="655.0" y="92.5" text-anchor="middle" font-size="17" font-weight="600" class="">A3</text><rect class="node" x="620" y="142" width="70" height="43" rx="9"/><text x="655.0" y="168.5" text-anchor="middle" font-size="17" font-weight="600" class="">B3</text><rect class="accent-node" x="620" y="229" width="70" height="43" rx="9"/><text x="655.0" y="255.5" text-anchor="middle" font-size="17" font-weight="600" class="">C3</text><text x="538" y="132" text-anchor="middle" font-size="23" font-weight="500" class="">+</text><path class="connector" d="M539 185 L539 220" marker-end="url(#diagram-arrow-4)"/></svg></div><figcaption>Conceptual four-lane SIMD example. Supported lane counts depend on the instruction set and the data type.</figcaption></figure>
+<p>one vector instruction may process several values together.</p>
+<p>Compilers can automatically vectorize many loops, but programmers can help by keeping loops simple, using contiguous memory, reducing dependencies between iterations, and selecting data structures that are friendly to vector operations.</p>
+<p>This is one reason performance-oriented software cares so much about <strong>how data is stored</strong>, not only about the algorithm operating on it.</p>
+<h2 id="3-the-interesting-part-hw-sw-optimization">3. The Interesting Part: HW-SW Optimization</h2>
+<p>This is where computer architecture becomes especially important.</p>
+<p>Instead of asking:</p>
+<p class="key-line"><strong>“How do we make the hardware faster?”</strong></p>
+<p>or:</p>
+<p class="key-line"><strong>“How do we make the software faster?”</strong></p>
+<p>we ask:</p>
+<blockquote class="key-block"><p><strong>How should software behave based on how the hardware is actually organized?</strong></p></blockquote>
+<p>Consider the complete path:</p>
+<p class="key-line"><strong>CPU → Cache → Interconnect → Memory</strong></p>
+<p>and in heterogeneous systems:</p>
+<p class="key-line"><strong>CPU → Cache → DRAM → PCIe/Interconnect → GPU → GPU Memory</strong></p>
+<p>Every movement has a cost.</p>
+<h2 id="cache-design-two-caches-for-48-cores-or-48-caches">Cache Design: Two Caches for 48 Cores or 48 Caches?</h2>
+<p>Suppose we are designing a 48-core processor.</p>
+<p>One extreme design might have only a few large caches shared by all 48 cores.</p>
+<p>Another might give every core its own cache.</p>
+<p>Which one is faster?</p>
+<p>There is no universal answer.</p>
+<h3 id="large-shared-cache">Large Shared Cache</h3>
+<p>Imagine 48 cores sharing two large caches.</p>
+<p>Sharing has advantages.</p>
+<p>If Core 1 produces data that Core 2 needs, both may be able to access the shared cache.</p>
+<p>There is also less duplication of the same data across many private caches.</p>
+<p>But now 48 cores are competing for the same resource.</p>
+<p>You can get:</p>
+<p class="key-line"><strong>contention → queueing → higher latency → reduced effective bandwidth</strong></p>
+<p>One workload can also occupy a large portion of the shared cache and interfere with another workload. Intel discusses this type of shared last-level-cache contention as a performance concern in multicore systems.</p>
+<h3 id="private-cache-per-core">Private Cache Per Core</h3>
+<p>Now imagine every core has its own cache.</p>
+<p>Core 0 accesses Cache 0.</p>
+<p>Core 1 accesses Cache 1.</p>
+<p>...</p>
+<p>Core 47 accesses Cache 47.</p>
+<p>Local accesses can now be extremely fast, and aggregate cache bandwidth can be much higher.</p>
+<p>But another problem appears.</p>
+<p>Suppose Core 0 changes variable <code>X</code>.</p>
+<p>Core 1 has another cached copy of <code>X</code>.</p>
+<p>How do we guarantee that Core 1 does not continue using the old value?</p>
+<p>We need <strong>cache coherence</strong>.</p>
+<p>Protocols such as MESI and related schemes track the ownership and validity of cache lines between cores.</p>
+<p>As core count increases, coherence traffic can itself become expensive, especially when many cores frequently write shared cache lines.</p>
+<p>That is why modern processors generally use a <strong>hierarchy</strong> rather than choosing one extreme.</p>
+<p>A simplified architecture might look like this. Real processors vary: some share L2 within a core cluster.</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 04</span><h3>A hierarchy, rather than a single cache</h3></div><div class="diagram-scroll" tabindex="0" aria-label="A hierarchy, rather than a single cache. Scroll horizontally on small screens."><svg viewBox="0 0 720 390" role="img" aria-label="A hierarchy, rather than a single cache"><title>A hierarchy, rather than a single cache</title><desc>Three representative cores from a 48-core system each have private L1 and L2 caches, connected to shared or distributed L3 and then a memory controller and DRAM.</desc><defs><marker id="diagram-arrow-5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><rect class="node" x="30" y="12" width="180" height="54" rx="9"/><text x="120.0" y="44.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 0</text><path class="connector" d="M120 66 L120 85" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="30" y="87" width="180" height="48" rx="9"/><text x="120.0" y="116.0" text-anchor="middle" font-size="17" font-weight="600" class="">Private L1</text><path class="connector" d="M120 135 L120 154" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="30" y="156" width="180" height="48" rx="9"/><text x="120.0" y="185.0" text-anchor="middle" font-size="17" font-weight="600" class="">Private L2</text><path class="connector" d="M120 204 L120 227"/><rect class="node" x="270" y="12" width="180" height="54" rx="9"/><text x="360.0" y="44.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 1</text><path class="connector" d="M360 66 L360 85" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="270" y="87" width="180" height="48" rx="9"/><text x="360.0" y="116.0" text-anchor="middle" font-size="17" font-weight="600" class="">Private L1</text><path class="connector" d="M360 135 L360 154" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="270" y="156" width="180" height="48" rx="9"/><text x="360.0" y="185.0" text-anchor="middle" font-size="17" font-weight="600" class="">Private L2</text><path class="connector" d="M360 204 L360 227"/><rect class="node" x="510" y="12" width="180" height="54" rx="9"/><text x="600.0" y="44.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 47</text><path class="connector" d="M600 66 L600 85" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="510" y="87" width="180" height="48" rx="9"/><text x="600.0" y="116.0" text-anchor="middle" font-size="17" font-weight="600" class="">Private L1</text><path class="connector" d="M600 135 L600 154" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="510" y="156" width="180" height="48" rx="9"/><text x="600.0" y="185.0" text-anchor="middle" font-size="17" font-weight="600" class="">Private L2</text><path class="connector" d="M600 204 L600 227"/><text x="478" y="115" text-anchor="middle" font-size="27" font-weight="500" class="">…</text><path class="connector" d="M120 227 L600 227"/><path class="connector" d="M360 227 L360 247" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="120" y="249" width="480" height="56" rx="9"/><text x="360.0" y="274.0" text-anchor="middle" font-size="17" font-weight="600" class="">Shared / distributed L3</text><text x="360.0" y="297.0" text-anchor="middle" font-size="13" font-weight="500" class="muted">Last-level cache</text><path class="connector" d="M360 305 L360 324" marker-end="url(#diagram-arrow-5)"/><rect class="node" x="180" y="326" width="360" height="48" rx="9"/><text x="360.0" y="355.0" text-anchor="middle" font-size="17" font-weight="600" class="">Memory controller + DRAM</text></svg></div><figcaption>Simplified topology. Lower-level cache hits are handled locally; requests that miss continue through the hierarchy. Capacity and latency generally increase toward DRAM.</figcaption></figure>
+<p>The small caches provide low latency near the CPU cores.</p>
+<p>The larger last-level cache improves sharing and provides another layer before expensive DRAM accesses.</p>
+<p>Real processors use variations of this idea. For example, Intel processors have used private lower-level caches combined with a shared last-level cache.</p>
+<h2 id="software-can-either-help-or-destroy-cache-performance">Software Can Either Help or Destroy Cache Performance</h2>
+<p>Even with an excellent cache architecture, software can create unnecessary coherence traffic.</p>
+<p>Suppose two threads each update their own counter:</p>
+<div class="code-panel"><div class="code-panel-bar"><span>False sharing and the fix</span><span class="code-language">C</span></div><pre><code>struct Counters { long a; long b; };   // a and b likely share one cache line
+
+struct Padded { alignas(64) long a; alignas(64) long b; };  // one line each</code></pre></div>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 05</span><h3>False sharing is a layout problem</h3></div><div class="diagram-scroll" tabindex="0" aria-label="False sharing is a layout problem. Scroll horizontally on small screens."><svg viewBox="0 0 720 292" role="img" aria-label="False sharing is a layout problem"><title>False sharing is a layout problem</title><desc>Left: Core 0 writes A and Core 1 writes B on the same cache line. Right: A and B occupy separate lines, reducing writer contention.</desc><defs><marker id="diagram-arrow-6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><text x="180" y="25" text-anchor="middle" font-size="18" font-weight="600" class="">Same line</text><text x="540" y="25" text-anchor="middle" font-size="18" font-weight="600" class="">Separate lines</text><rect class="node" x="40" y="51" width="125" height="46" rx="9"/><text x="102.5" y="79.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 0</text><rect class="node" x="195" y="51" width="125" height="46" rx="9"/><text x="257.5" y="79.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 1</text><path class="connector" d="M102 97 L102 132" marker-end="url(#diagram-arrow-6)"/><path class="connector" d="M257 97 L257 132" marker-end="url(#diagram-arrow-6)"/><rect class="accent-node" x="30" y="137" width="300" height="66" rx="9"/><text x="180.0" y="167.0" text-anchor="middle" font-size="17" font-weight="600" class="">A      B      other data</text><text x="180.0" y="190.0" text-anchor="middle" font-size="13" font-weight="500" class="muted">One shared cache line</text><text x="180" y="245" text-anchor="middle" font-size="16" font-weight="500" class="">Ownership can bounce</text><text x="180" y="268" text-anchor="middle" font-size="16" font-weight="500" class="muted">between writers</text><rect class="node" x="399" y="51" width="125" height="46" rx="9"/><text x="461.5" y="79.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 0</text><rect class="node" x="554" y="51" width="125" height="46" rx="9"/><text x="616.5" y="79.0" text-anchor="middle" font-size="17" font-weight="600" class="">Core 1</text><path class="connector" d="M461 97 L461 132" marker-end="url(#diagram-arrow-6)"/><path class="connector" d="M616 97 L616 132" marker-end="url(#diagram-arrow-6)"/><rect class="node" x="387" y="137" width="148" height="66" rx="9"/><text x="461.0" y="167.0" text-anchor="middle" font-size="17" font-weight="600" class="">A + padding</text><text x="461.0" y="190.0" text-anchor="middle" font-size="13" font-weight="500" class="muted">Cache line 0</text><rect class="node" x="546" y="137" width="148" height="66" rx="9"/><text x="620.0" y="167.0" text-anchor="middle" font-size="17" font-weight="600" class="">B + padding</text><text x="620.0" y="190.0" text-anchor="middle" font-size="13" font-weight="500" class="muted">Cache line 1</text><text x="540" y="245" text-anchor="middle" font-size="16" font-weight="500" class="">Each writer uses</text><text x="540" y="268" text-anchor="middle" font-size="16" font-weight="500" class="muted">a separate line</text></svg></div><figcaption>Padding costs memory and may hurt other access patterns. Use the target platform’s cache-line size and measure the effect rather than assuming every structure should be padded.</figcaption></figure>
+<p>There appears to be no sharing.</p>
+<p>But imagine <code>A</code> and <code>B</code> happen to occupy the same cache line.</p>
+<p>Now every update can cause the cache line to move between cores.</p>
+<p>This is called <strong>false sharing</strong>.</p>
+<p>The variables are logically independent, but the hardware coherence system sees the entire cache line. Coherence keeps cached copies coordinated; threads still need appropriate synchronization when they share data.</p>
+<p>Performance-oriented software can avoid this by separating frequently written variables, partitioning data between threads, aligning structures properly, and reducing shared writes.</p>
+<p>This is a perfect example of why software developers benefit from understanding computer architecture.</p>
+<h2 id="where-should-memory-be-placed">Where Should Memory Be Placed?</h2>
+<p>Now suppose our 48-core machine has multiple memory controllers.</p>
+<p>Not every core may be equally close to every piece of DRAM.</p>
+<p>When memory access cost depends on where the core and memory are located, this is a <strong>NUMA</strong>, or Non-Uniform Memory Access, architecture.</p>
+<p>Imagine:</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 06</span><h3>Keep each worker near its data</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Keep each worker near its data. Scroll horizontally on small screens."><svg viewBox="0 0 720 275" role="img" aria-label="Keep each worker near its data"><title>Keep each worker near its data</title><desc>Two NUMA nodes have local DRAM. A dashed route illustrates a node 0 core reaching remote DRAM B over the interconnect.</desc><defs><marker id="diagram-arrow-7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><rect class="node" x="20" y="20" width="290" height="80" rx="9"/><text x="165.0" y="57.0" text-anchor="middle" font-size="17" font-weight="600" class="">NUMA node 0</text><text x="165.0" y="80.0" text-anchor="middle" font-size="13" font-weight="500" class="muted">Cores 0-23</text><rect class="node" x="410" y="20" width="290" height="80" rx="9"/><text x="555.0" y="57.0" text-anchor="middle" font-size="17" font-weight="600" class="">NUMA node 1</text><text x="555.0" y="80.0" text-anchor="middle" font-size="13" font-weight="500" class="muted">Cores 24-47</text><path class="connector" d="M165 100 L165 185" marker-end="url(#diagram-arrow-7)"/><path class="connector" d="M555 100 L555 185" marker-end="url(#diagram-arrow-7)"/><text x="108" y="153" text-anchor="middle" font-size="14" font-weight="500" class="">Local</text><text x="612" y="153" text-anchor="middle" font-size="14" font-weight="500" class="">Local</text><rect class="node" x="40" y="190" width="250" height="62" rx="9"/><text x="165.0" y="226.0" text-anchor="middle" font-size="17" font-weight="600" class="">DRAM A</text><rect class="node" x="430" y="190" width="250" height="62" rx="9"/><text x="555.0" y="226.0" text-anchor="middle" font-size="17" font-weight="600" class="">DRAM B</text><path class="connector" d="M310 60 L410 60" stroke-dasharray="5 5" marker-end="url(#diagram-arrow-7)"/><text x="360" y="127" text-anchor="middle" font-size="14" font-weight="500" class="">Interconnect</text><path class="connector" d="M285 90 L385 174 L460 190" stroke-dasharray="5 5" marker-end="url(#diagram-arrow-7)"/><text x="342" y="217" text-anchor="middle" font-size="14" font-weight="500" class="">Remote</text></svg></div><figcaption>Illustrative two-node layout. Remote memory access can add latency and consume interconnect bandwidth; no particular latency or bandwidth is assumed.</figcaption></figure>
+<p>A core in Group A accessing Memory A may get relatively low latency.</p>
+<p>The same core accessing Memory B may require traffic across an interconnect.</p>
+<p>So memory placement matters.</p>
+<p>AMD's optimization guidance recommends keeping computation and its memory close together where possible. On Linux, memory allocation may follow a first-touch policy, meaning the NUMA location where data is first initialized can affect where the memory physically resides.</p>
+<p>This gives us an important software optimization.</p>
+<p>Instead of:</p>
+<div class="comparison-grid"><div class="technique-card"><span class="technique-label">One thread initializes</span><p>Thread 0 initializes the entire array.</p><div class="memory-slab">All pages tend toward one NUMA node</div><p>Other workers may need remote memory.</p></div><div class="technique-card"><span class="technique-label">Workers initialize their parts</span><p>Each worker first touches its own region.</p><div class="memory-parts"><span>Part 0</span><span>Part 1</span><span>…</span></div><p>Pages are more likely to be near their consumers.</p></div></div><p class="visual-note">Placement is page-based and depends on memory policy, available capacity, and where each thread runs.</p>
+<p>we may initialize different portions using the threads that will later process them.</p>
+<p>Now data is more likely to be allocated closer to its consumer.</p>
+<p>This can reduce remote-memory traffic and improve aggregate bandwidth.</p>
+<h2 id="cpu-optimization-keep-the-cpu-fed">CPU Optimization: Keep the CPU Fed</h2>
+<p>A CPU performs best when instructions and data arrive continuously.</p>
+<p>A few common techniques are:</p>
+<p><strong>Thread affinity:</strong> Keep important threads on appropriate cores instead of constantly migrating them.</p>
+<p><strong>Cache-friendly layouts:</strong> Organize data so information used together is stored together.</p>
+<p><strong>Prefetching:</strong> Fetch data before the processor actually needs it.</p>
+<p><strong>Reduce branch unpredictability:</strong> Frequently mispredicted branches can flush useful work from the CPU pipeline.</p>
+<p><strong>Reduce synchronization:</strong> Locks and atomic variables can become serialization points.</p>
+<p>An important principle is that adding CPU threads helps only until another resource becomes the bottleneck.</p>
+<p>For example:</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 07</span><h3>More threads, same bandwidth</h3></div><div class="diagram-scroll" tabindex="0" aria-label="More threads, same bandwidth. Scroll horizontally on small screens."><svg viewBox="0 0 720 328" role="img" aria-label="More threads, same bandwidth"><title>More threads, same bandwidth</title><desc>Illustrative data from the article: 1 thread 5 GB/s, 8 threads 35 GB/s, 16 threads 60 GB/s, 32 and 48 threads 62 GB/s.</desc><defs><marker id="diagram-arrow-8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><line class="gridline" x1="65" y1="245.0" x2="680" y2="245.0"/><text x="50" y="250.0" text-anchor="end" font-size="14" font-weight="500" class="">0</text><line class="gridline" x1="65" y1="188.0" x2="680" y2="188.0"/><text x="50" y="193.0" text-anchor="end" font-size="14" font-weight="500" class="">20</text><line class="gridline" x1="65" y1="131.0" x2="680" y2="131.0"/><text x="50" y="136.0" text-anchor="end" font-size="14" font-weight="500" class="">40</text><line class="gridline" x1="65" y1="74.0" x2="680" y2="74.0"/><text x="50" y="79.0" text-anchor="end" font-size="14" font-weight="500" class="">60</text><text x="66" y="25" text-anchor="start" font-size="15" font-weight="500" class="">Bandwidth (GB/s)</text><text x="80" y="274" text-anchor="middle" font-size="14" font-weight="500" class="">1</text><text x="80" y="216.75" text-anchor="middle" font-size="15" font-weight="600" class="">5</text><text x="225" y="274" text-anchor="middle" font-size="14" font-weight="500" class="">8</text><text x="225" y="131.25" text-anchor="middle" font-size="15" font-weight="600" class="">35</text><text x="370" y="274" text-anchor="middle" font-size="14" font-weight="500" class="">16</text><text x="370" y="60.0" text-anchor="middle" font-size="15" font-weight="600" class="">60</text><text x="515" y="274" text-anchor="middle" font-size="14" font-weight="500" class="">32</text><text x="515" y="54.29999999999998" text-anchor="middle" font-size="15" font-weight="600" class="">62</text><text x="660" y="274" text-anchor="middle" font-size="14" font-weight="500" class="">48</text><text x="660" y="54.29999999999998" text-anchor="middle" font-size="15" font-weight="600" class="">62</text><polyline points="80,230.75 225,145.25 370,74.0 515,68.29999999999998 660,68.29999999999998" fill="none" stroke="currentColor" stroke-width="3"/><circle class="solid" cx="80" cy="230.75" r="5"/><circle class="solid" cx="225" cy="145.25" r="5"/><circle class="solid" cx="370" cy="74.0" r="5"/><circle class="solid" cx="515" cy="68.29999999999998" r="5"/><circle class="solid" cx="660" cy="68.29999999999998" r="5"/><text x="370" y="308" text-anchor="middle" font-size="15" font-weight="500" class="">Worker threads (sampled configurations)</text></svg></div><figcaption>Illustrative values, not benchmark measurements. Configurations are equally spaced as categories. Once bandwidth saturates, more threads add little benefit.</figcaption></figure>
+<p>Once memory bandwidth is saturated, adding more cores does almost nothing.</p>
+<p>The optimization target should now move from <strong>CPU parallelism</strong> to <strong>memory behavior</strong>.</p>
+<h2 id="gpu-optimization-give-the-gpu-the-right-kind-of-work">GPU Optimization: Give the GPU the Right Kind of Work</h2>
+<p>GPUs are excellent at executing huge numbers of similar operations.</p>
+<p>Suppose we need to process ten million pixels.</p>
+<p>A CPU might divide them among a few dozen cores.</p>
+<p>A GPU may execute thousands of lightweight threads.</p>
+<p>But GPU performance depends heavily on how the software feeds it.</p>
+<p>One of the most important techniques is <strong>coalesced memory access</strong>.</p>
+<p>If neighboring GPU threads access neighboring memory locations, the GPU can combine those accesses into a smaller number of memory transactions. Scattered accesses can require many more transactions. NVIDIA identifies coalesced global-memory access as a high-priority CUDA optimization.</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 08</span><h3>Arrange memory for the threads using it</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Arrange memory for the threads using it. Scroll horizontally on small screens."><svg viewBox="0 0 720 255" role="img" aria-label="Arrange memory for the threads using it"><title>Arrange memory for the threads using it</title><desc>Four representative threads access adjacent array elements on the left and widely separated elements on the right.</desc><defs><marker id="diagram-arrow-9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><text x="180" y="27" text-anchor="middle" font-size="18" font-weight="600" class="">Adjacent accesses</text><text x="540" y="27" text-anchor="middle" font-size="18" font-weight="600" class="">Scattered accesses</text><rect class="node" x="25" y="60" width="70" height="42" rx="9"/><text x="60.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T0</text><path class="connector" d="M60 102 L60 142" marker-end="url(#diagram-arrow-9)"/><rect class="accent-node" x="25" y="145" width="70" height="46" rx="9"/><text x="60.0" y="173.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[0]</text><rect class="node" x="103" y="60" width="70" height="42" rx="9"/><text x="138.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T1</text><path class="connector" d="M138 102 L138 142" marker-end="url(#diagram-arrow-9)"/><rect class="accent-node" x="103" y="145" width="70" height="46" rx="9"/><text x="138.0" y="173.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[1]</text><rect class="node" x="181" y="60" width="70" height="42" rx="9"/><text x="216.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T2</text><path class="connector" d="M216 102 L216 142" marker-end="url(#diagram-arrow-9)"/><rect class="accent-node" x="181" y="145" width="70" height="46" rx="9"/><text x="216.0" y="173.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[2]</text><rect class="node" x="259" y="60" width="70" height="42" rx="9"/><text x="294.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T3</text><path class="connector" d="M294 102 L294 142" marker-end="url(#diagram-arrow-9)"/><rect class="accent-node" x="259" y="145" width="70" height="46" rx="9"/><text x="294.0" y="173.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[3]</text><text x="177" y="232" text-anchor="middle" font-size="15" font-weight="500" class="muted">Nearby memory</text><rect class="node" x="385" y="60" width="70" height="42" rx="9"/><text x="420.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T0</text><path class="connector" d="M420 102 L420 142" marker-end="url(#diagram-arrow-9)"/><rect class="node" x="385" y="145" width="70" height="46" rx="9"/><text x="420.0" y="173.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[0]</text><rect class="node" x="463" y="60" width="70" height="42" rx="9"/><text x="498.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T1</text><path class="connector" d="M498 102 L498 142" marker-end="url(#diagram-arrow-9)"/><rect class="node" x="463" y="145" width="70" height="46" rx="9"/><text x="498.0" y="173.0" text-anchor="middle" font-size="17" font-weight="600" class="">A[21]</text><rect class="node" x="541" y="60" width="70" height="42" rx="9"/><text x="576.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T2</text><path class="connector" d="M576 102 L576 142" marker-end="url(#diagram-arrow-9)"/><rect class="node" x="541" y="145" width="70" height="46" rx="9"/><text x="576.0" y="173.0" text-anchor="middle" font-size="15.2" font-weight="600" class="">A[750]</text><rect class="node" x="619" y="60" width="70" height="42" rx="9"/><text x="654.0" y="86.0" text-anchor="middle" font-size="17" font-weight="600" class="">T3</text><path class="connector" d="M654 102 L654 142" marker-end="url(#diagram-arrow-9)"/><rect class="node" x="619" y="145" width="70" height="46" rx="9"/><text x="654.0" y="173.0" text-anchor="middle" font-size="13.0" font-weight="600" class="">A[9000]</text><text x="537" y="232" text-anchor="middle" font-size="15" font-weight="500" class="muted">Different memory regions</text></svg></div><figcaption>Conceptual illustration, not a transaction-count model. Actual coalescing depends on the full warp, element size, alignment, and GPU architecture.</figcaption></figure>
+<p>Similarly, GPU programs should try to reduce branch divergence, reuse data through fast on-chip/shared memory when appropriate, give the GPU enough parallel work, and avoid launching extremely small kernels repeatedly.</p>
+<p>Another important technique is <strong>batching</strong>.</p>
+<p>Instead of:</p>
+<div class="flow-block repeated"><div class="flow-row"><span>Send item</span><span>Run GPU</span><span>Receive result</span></div><p class="flow-caption">Repeat the transfer and launch sequence for every item.</p></div>
+<p>use:</p>
+<div class="flow-block "><div class="flow-row"><span>Send 1,000 items</span><span>Run GPU</span><span>Receive 1,000 results</span></div><p class="flow-caption">A batch shares communication and launch overhead across more useful work.</p></div>
+<p>The GPU performs more useful computation relative to communication and launch overhead.</p>
+<h2 id="cpu-gpu-data-movement-can-decide-everything">CPU + GPU: Data Movement Can Decide Everything</h2>
+<p>Imagine a CPU performs one operation in:</p>
+<p class="key-line"><strong>10 ms</strong></p>
+<p>while a GPU performs it in:</p>
+<p><strong>2 ms</strong>.</p>
+<p>GPU sounds like the obvious winner.</p>
+<p>But suppose:</p>
+<figure class="visual-card" id="transfer-figure"><div class="visual-heading"><span class="technique-label">Interactive example</span><h3>Pay the transfer cost once</h3></div>
+      <div class="legend"><span>Compute</span><span class="transfer">Data transfer</span></div>
+      <label class="control-label" for="operations"><span>Operations on the same data</span><output id="op-count" for="operations">1</output></label><input id="operations" type="range" min="1" max="20" step="1" value="1">
+      <div class="timeline-row"><span class="timeline-label">CPU only</span><div class="timeline-track" id="cpu-track" style="width:71.4286%"><span class="compute" style="width:100%" id="cpu-segment">10 ms</span></div><strong class="bar-value" id="cpu-total">10 ms</strong></div>
+      <div class="timeline-row"><span class="timeline-label">Resident GPU</span><div class="timeline-track" id="gpu-track" style="width:100%"><span class="transfer" id="upload-segment" style="width:42.8571%">6</span><span class="compute" id="gpu-segment" style="width:14.2857%">2</span><span class="transfer" id="download-segment" style="width:42.8571%">6</span></div><strong class="bar-value" id="gpu-total">14 ms</strong></div>
+      <p class="interactive-result" id="transfer-result" aria-live="polite">For 1 operation, the CPU takes 10 ms and the GPU takes 14 ms. The CPU finishes sooner.</p>
+      <figcaption>Illustrative model: CPU = 10N ms; resident GPU = 6 + 2N + 6 ms. Transfer time stays fixed, and each operation reuses device-resident data. At N = 10, CPU = 100 ms and GPU = 32 ms, a 3.13× speedup. Launch overhead, synchronization, and result sizes are not modeled. With these numbers the GPU overtakes the CPU at N = 2.</figcaption></figure>
+<p>Total: 6 ms upload + 2 ms compute + 6 ms download =</p>
+<p class="key-line"><strong>14 ms</strong></p>
+<p>The CPU version is actually faster.</p>
+<p>Now suppose we perform 20 operations on the same data while keeping it on the GPU:</p>
+<div class="flow-block "><div class="flow-row"><span>Upload once</span><span>20 GPU operations</span><span>Download once</span></div><p class="flow-caption">Reuse the same device-resident data between operations.</p></div><div class="stat-grid"><div class="stat"><strong>200 ms</strong><small>CPU: 20 × 10 ms</small></div><div class="stat"><strong>52 ms</strong><small>GPU: 6 + (20 × 2) + 6 ms</small></div><div class="stat"><strong>3.85×</strong><small>Illustrative overall speedup</small></div></div><p class="visual-note">Same simplified timings as above. Per-operation launch overhead and output-size changes are not modeled.</p>
+<p>Now the GPU may win by a large margin.</p>
+<p>This is why deciding <strong>where computation happens</strong> and <strong>where data lives</strong> is just as important as choosing the fastest processor.</p>
+<h2 id="bus-and-interconnect-optimization">Bus and Interconnect Optimization</h2>
+<p>The CPU, GPU, memory and peripherals must communicate through buses and interconnects such as PCIe, memory buses and on-chip networks.</p>
+<p>Sending thousands of tiny transfers can create significant overhead.</p>
+<p>Instead of:</p>
+<div class="comparison-grid"><div class="technique-card"><span class="technique-label">Many small requests</span><div class="tiny-transfers"><span>4 B</span><span>4 B</span><span>4 B</span><span>4 B</span><span>4 B</span><span>4 B</span><span>4 B</span><span>4 B</span></div><p>Setup overhead repeats.</p></div><div class="technique-card"><span class="technique-label">Combined transfer</span><div class="memory-slab">One larger payload</div><p>Setup overhead is shared.</p></div></div>
+<p>software can often combine data into larger transactions.</p>
+<p>DMA can also allow devices to move data without requiring the CPU to manually handle every byte.</p>
+<p>Data alignment matters as well. Intel's optimization guidance, for example, recommends properly aligned and appropriately sized PCIe transactions for maximizing PCIe bandwidth on applicable platforms.</p>
+<p>Modern multicore SoCs also use sophisticated coherent interconnects so processors and accelerators can share data while maintaining a consistent view of memory. Hardware coherence can reduce software cache-maintenance overhead, although coherence itself consumes bandwidth and hardware resources.</p>
+<p>Again, everything is a tradeoff.</p>
+<h2 id="other-techniques-widely-used-in-industry">Other Techniques Widely Used in Industry</h2>
+<p>Several additional optimizations appear repeatedly in high-performance systems.</p>
+<p><strong>Kernel fusion</strong> combines multiple GPU operations so intermediate data does not repeatedly travel to slower memory.</p>
+<p><strong>Mixed precision and quantization</strong> use smaller numerical formats such as FP16, BF16 or INT8 when the application can tolerate them. This is especially important in AI workloads because smaller data can mean more computation per cycle and less memory traffic.</p>
+<p><strong>Double buffering</strong> allows the system to process one buffer while the next buffer is being loaded.</p>
+<p>For example:</p>
+<figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 09</span><h3>Overlap requires independent engines and buffers</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Overlap requires independent engines and buffers. Scroll horizontally on small screens."><svg viewBox="0 0 720 335" role="img" aria-label="Overlap requires independent engines and buffers"><title>Overlap requires independent engines and buffers</title><desc>Sequential loading and computing of two batches takes 12 ms. With separate transfer and compute engines, loading B overlaps computing A and the schedule takes 10 ms.</desc><defs><marker id="diagram-arrow-10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><text x="25" y="25" text-anchor="start" font-size="17" font-weight="600" class="">Sequential: 12 ms</text><text x="25" y="83" text-anchor="start" font-size="14" font-weight="500" class="">One stream</text><rect class="node" x="190" y="48" width="77" height="51" rx="9"/><text x="228.5" y="78.5" text-anchor="middle" font-size="17" font-weight="600" class="">Load A</text><rect class="node" x="270" y="48" width="157" height="51" rx="9"/><text x="348.5" y="78.5" text-anchor="middle" font-size="17" font-weight="600" class="">Compute A</text><rect class="node" x="430" y="48" width="77" height="51" rx="9"/><text x="468.5" y="78.5" text-anchor="middle" font-size="17" font-weight="600" class="">Load B</text><rect class="node" x="510" y="48" width="157" height="51" rx="9"/><text x="588.5" y="78.5" text-anchor="middle" font-size="17" font-weight="600" class="">Compute B</text><text x="25" y="143" text-anchor="start" font-size="17" font-weight="600" class="">Overlapped: 10 ms</text><text x="25" y="197" text-anchor="start" font-size="14" font-weight="500" class="">Transfer engine</text><text x="25" y="263" text-anchor="start" font-size="14" font-weight="500" class="">Compute engine</text><rect class="node" x="190" y="163" width="77" height="48" rx="9"/><text x="228.5" y="192.0" text-anchor="middle" font-size="17" font-weight="600" class="">Load A</text><rect class="node" x="270" y="163" width="77" height="48" rx="9"/><text x="308.5" y="192.0" text-anchor="middle" font-size="17" font-weight="600" class="">Load B</text><rect class="accent-node" x="270" y="229" width="157" height="48" rx="9"/><text x="348.5" y="258.0" text-anchor="middle" font-size="17" font-weight="600" class="">Compute A</text><rect class="accent-node" x="430" y="229" width="157" height="48" rx="9"/><text x="508.5" y="258.0" text-anchor="middle" font-size="17" font-weight="600" class="">Compute B</text><path class="connector" d="M267 187 L270 225" stroke-dasharray="5 5" marker-end="url(#diagram-arrow-10)"/><path class="connector" d="M347 205 L430 225" stroke-dasharray="5 5" marker-end="url(#diagram-arrow-10)"/><text x="190" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">0</text><text x="270" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">2</text><text x="350" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">4</text><text x="430" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">6</text><text x="510" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">8</text><text x="590" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">10</text><text x="670" y="313" text-anchor="middle" font-size="13" font-weight="500" class="">12</text><text x="25" y="313" text-anchor="start" font-size="14" font-weight="500" class="">Time (ms)</text></svg></div><figcaption>Illustrative schedule: 2 ms input transfer and 4 ms compute per batch. Output transfers are omitted. Load B overlaps compute A; compute B waits until its input and the compute engine are ready.</figcaption></figure>
+<p>Instead of waiting for each operation sequentially, communication and computation overlap. This requires suitable hardware and independent work; asynchronous APIs alone do not guarantee overlap.</p>
+<p><strong>Asynchronous execution</strong> uses the same idea. CPUs, GPUs, storage and network devices can work concurrently rather than making everything wait for everything else.</p>
+<p><strong>Profile-guided optimization and compiler optimization</strong> allow compilers to perform transformations such as inlining, vectorization, loop optimization and code layout using knowledge about real program behavior.</p>
+<p><strong>Specialized accelerators</strong> are another major trend. Instead of forcing the CPU to perform everything, modern systems contain hardware for graphics, AI, video encoding, cryptography, networking and signal processing.</p>
+<p>The goal is not simply:</p>
+<blockquote class="key-block"><p>“Build a faster processor.”</p></blockquote>
+<p>The goal is:</p>
+<blockquote class="key-block"><p><strong>Run each workload on the hardware architecture that executes it most efficiently.</strong></p></blockquote>
+<h2 id="same-ideas-on-a-microcontroller">The Same Ideas on a Microcontroller</h2>
+<p>None of this needs a 48-core server. Imagine an SPI display: a CPU loop sends every pixel byte itself, so the core is busy the whole time. With DMA, the CPU starts the transfer and prepares the next frame while the hardware moves the current one. Add two framebuffers and it is Figure 09 again, just smaller.</p>
+<h2 id="the-bigger-picture">The Bigger Picture</h2>
+<p>When someone says:</p>
+<blockquote class="key-block"><p>“Make the device faster.”</p></blockquote>
+<p>there are really three optimization layers.</p>
+<h4 id="hardware">Hardware</h4>
+<p>Improve what the machine is physically capable of doing.</p>
+<p>Examples include pipelining, parallel execution units, wider SIMD, more memory channels and specialized accelerators.</p>
+<h4 id="software">Software</h4>
+<p>Reduce unnecessary work and make better use of the available hardware.</p>
+<p>Choose better algorithms, improve locality, parallelize carefully, vectorize, reduce copies, reduce synchronization and batch operations.</p>
+<h4 id="hardware-software">Hardware + Software</h4>
+<p>Understand the architecture and organize software around it.</p>
+<p>Place data near the processor using it.</p>
+<p>Keep hot data in cache.</p>
+<p>Avoid unnecessary cache coherence traffic.</p>
+<p>Keep CPU threads close to their memory.</p>
+<p>Feed GPU threads contiguous data.</p>
+<p>Avoid repeatedly transferring CPU/GPU data.</p>
+<p>Batch bus transactions.</p>
+<p>Use the right processor for each stage.</p>
+<h2 id="so-where-should-you-optimize-first">So Where Should You Optimize First?</h2>
+<p>The answer is not automatically <strong>hardware</strong> or <strong>software</strong>.</p>
+<p>Start by measuring the system.</p><figure class="visual-card"><div class="visual-heading"><span class="technique-label">Figure 10</span><h3>Let the bottleneck select the next experiment</h3></div><div class="diagram-scroll" tabindex="0" aria-label="Let the bottleneck select the next experiment. Scroll horizontally on small screens."><svg viewBox="0 0 720 390" role="img" aria-label="Let the bottleneck select the next experiment"><title>Let the bottleneck select the next experiment</title><desc>Profiling leads to compute, memory, or coordination and I/O paths. Each path suggests targeted optimizations, followed by correctness checks and remeasurement.</desc><defs><marker id="diagram-arrow-11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/></marker></defs><rect class="node" x="230" y="12" width="260" height="57" rx="9"/><text x="360.0" y="45.5" text-anchor="middle" font-size="17" font-weight="600" class="">Profile the workload</text><path class="connector" d="M360 69 L360 94"/><path class="connector" d="M125 94 L595 94"/><path class="connector" d="M125 94 L125 113" marker-end="url(#diagram-arrow-11)"/><path class="connector" d="M360 94 L360 113" marker-end="url(#diagram-arrow-11)"/><path class="connector" d="M595 94 L595 113" marker-end="url(#diagram-arrow-11)"/><rect class="node" x="20" y="116" width="210" height="67" rx="9"/><text x="125.0" y="146.5" text-anchor="middle" font-size="17" font-weight="600" class="">Compute</text><text x="125.0" y="169.5" text-anchor="middle" font-size="13" font-weight="500" class="muted">Arithmetic dominates</text><path class="connector" d="M125 183 L125 207" marker-end="url(#diagram-arrow-11)"/><rect class="node" x="20" y="209" width="210" height="67" rx="9"/><text x="125.0" y="239.5" text-anchor="middle" font-size="17" font-weight="600" class="">Reduce / parallelize</text><text x="125.0" y="262.5" text-anchor="middle" font-size="13" font-weight="500" class="muted">Algorithm, SIMD, accelerator</text><path class="connector" d="M125 276 L125 297"/><rect class="node" x="255" y="116" width="210" height="67" rx="9"/><text x="360.0" y="146.5" text-anchor="middle" font-size="17" font-weight="600" class="">Memory</text><text x="360.0" y="169.5" text-anchor="middle" font-size="13" font-weight="500" class="muted">Stalls or bandwidth limit</text><path class="connector" d="M360 183 L360 207" marker-end="url(#diagram-arrow-11)"/><rect class="node" x="255" y="209" width="210" height="67" rx="9"/><text x="360.0" y="239.5" text-anchor="middle" font-size="14.4" font-weight="600" class="">Improve reuse / locality</text><text x="360.0" y="262.5" text-anchor="middle" font-size="13" font-weight="500" class="muted">Tiling, layout, NUMA</text><path class="connector" d="M360 276 L360 297"/><rect class="node" x="490" y="116" width="210" height="67" rx="9"/><text x="595.0" y="146.5" text-anchor="middle" font-size="17" font-weight="600" class="">Coordination / I/O</text><text x="595.0" y="169.5" text-anchor="middle" font-size="13" font-weight="500" class="muted">Waits, transfers, contention</text><path class="connector" d="M595 183 L595 207" marker-end="url(#diagram-arrow-11)"/><rect class="node" x="490" y="209" width="210" height="67" rx="9"/><text x="595.0" y="239.5" text-anchor="middle" font-size="15.7" font-weight="600" class="">Reduce / overlap waits</text><text x="595.0" y="262.5" text-anchor="middle" font-size="13" font-weight="500" class="muted">Batching, DMA, local results</text><path class="connector" d="M595 276 L595 297"/><path class="connector" d="M125 297 L595 297"/><path class="connector" d="M360 297 L360 317" marker-end="url(#diagram-arrow-11)"/><rect class="node" x="190" y="319" width="340" height="57" rx="9"/><text x="360.0" y="352.5" text-anchor="middle" font-size="17" font-weight="600" class="">Check correctness + remeasure</text></svg></div><figcaption>A workload can have several bottlenecks. Improving one stage may expose another; repeat the profile after a meaningful change.</figcaption></figure>
+<h2 id="so-where-should-you-optimize-first">After Profiling: Quick Optimization Cheat Sheet</h2>
+<p>Use the profile to find the biggest delay, then choose a targeted change. This sheet shows <strong>where to look</strong> and <strong>what to try</strong>.</p>
+<div class="table-wrap optimization-sheet" id="cheat-sheet" tabindex="0" aria-label="Optimization cheat sheet">
+<table>
+  <thead><tr><th scope="col">Symptom</th><th scope="col">Where to look</th><th scope="col">Techniques to try</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Calculations dominate</th><td data-label="Where to look">Hot functions, repeated work, algorithm complexity</td><td data-label="Try">Use a better algorithm, remove unnecessary work, vectorize (SIMD), or parallelize independent work.</td></tr>
+    <tr><th scope="row">CPU waits for memory</th><td data-label="Where to look">Cache misses, scattered accesses, large working sets</td><td data-label="Try">Use contiguous data, blocking or tiling, and data reuse. Prefetch when access patterns are predictable.</td></tr>
+    <tr><th scope="row">More cores barely help</th><td data-label="Where to look">Memory bandwidth and traffic as thread count increases</td><td data-label="Try">Reduce copies and passes over data. Reuse cached data and tune the thread count.</td></tr>
+    <tr><th scope="row">Threads scale poorly</th><td data-label="Where to look">Lock contention, shared writes, false sharing</td><td data-label="Try">Use per-thread results, partition writes, and reduce locking. Separate frequently written fields when they share a cache line.</td></tr>
+    <tr><th scope="row">Slow on a NUMA system</th><td data-label="Where to look">Remote memory accesses, page placement, thread migration</td><td data-label="Try">Initialize each worker’s data locally using first touch, and use thread affinity where appropriate.</td></tr>
+    <tr><th scope="row">GPU kernels are slow</th><td data-label="Where to look">Scattered memory access, branch divergence, small launches</td><td data-label="Try">Coalesce accesses, reuse data in shared memory, batch work, and test kernel fusion.</td></tr>
+    <tr><th scope="row">CPU-GPU transfers dominate</th><td data-label="Where to look">Number and size of copies; time spent transferring versus computing</td><td data-label="Try">Keep data on the GPU, remove round trips, batch transfers, and overlap independent transfers with compute when supported.</td></tr>
+    <tr><th scope="row">I/O waits or device drops data</th><td data-label="Where to look">CPU copy time, queue pressure, buffer capacity, I/O throughput</td><td data-label="Try">Try DMA, reusable buffers, double buffering, and asynchronous I/O. Check whether the device, bus, or consumer is the limit.</td></tr>
+    <tr><th scope="row">Hardware stays saturated</th><td data-label="Where to look">Measured limits in compute, memory bandwidth, or the interconnect</td><td data-label="Try">Add the resource that is limiting performance: suitable compute units, memory bandwidth, or a specialized accelerator.</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="technique-card optimization-reminder">
+  <span class="technique-label">After each change</span>
+  <p><strong>Check correctness, compare end-to-end time, and profile again.</strong> Use the same workload and change one thing at a time. Fixing one bottleneck may expose another.</p>
+</div>
+  
+<p>One of the most useful lessons in computer architecture is this:</p>
+<blockquote class="key-block"><p><strong>Performance is not only about how fast you can compute. It is also about how little data you move, how close that data is to the compute unit, and how much useful work can happen in parallel.</strong></p></blockquote>
+<p>A powerful CPU running poorly structured software can be slow.</p>
+<p>A powerful GPU constantly waiting for PCIe transfers can be slow.</p>
+<p>Forty-eight cores fighting over shared cache lines can be slower than a smaller number of well-utilized cores.</p>
+<p>The fastest system is usually the one in which <strong>hardware architecture and software behavior are designed to work together</strong>.</p>
+
+<h2 id="further-reading">Further reading</h2><ol class="source-list">
+<li id="ref-blocking"><a href="https://www.intel.com/content/www/us/en/developer/articles/technical/cache-blocking-techniques.html">Intel: Cache Blocking Techniques</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/developer/articles/training/choosing-hardware-real-time-system.html">Intel: Cache architecture and sharing</a></li>
+<li><a href="https://www.intel.com/content/www/us/en/docs/vtune-profiler/cookbook/2024-0/false-sharing.html">Intel VTune: False Sharing</a></li>
+<li><a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/numa_memory_policy.html">Linux kernel: NUMA Memory Policy</a> and <a href="https://docs.amd.com/r/en-US/ug1586-onload-user/Onload-Deployment-on-NUMA-Systems">AMD: Onload Deployment on NUMA Systems</a></li>
+<li><a href="https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/">NVIDIA: CUDA C++ Best Practices Guide</a></li>
+<li><a href="https://cdrdv2-public.intel.com/821612/248966-Optimization-Reference-Manual-V1-050.pdf">Intel: Optimization Reference Manual</a></li>
+<li><a href="https://docs.amd.com/r/en-US/am011-versal-acap-trm/Cache-Coherent-Interconnect">AMD: Cache Coherent Interconnect</a></li></ol></article>
+  </main>
+  <footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Engineering Notes</p></footer>
+
+  <script>
+    (() => {
+      const input = document.getElementById('operations');
+      const set = (id, value) => { document.getElementById(id).textContent = value; };
+      function update() {
+        const n = Number(input.value), cpu = 10 * n, gpu = 12 + 2 * n, scale = Math.max(cpu,gpu);
+        set('op-count', n); set('cpu-total', cpu + ' ms'); set('gpu-total', gpu + ' ms');
+        set('cpu-segment',cpu + ' ms'); set('gpu-segment',2*n);
+        document.getElementById('cpu-track').style.width = (100*cpu/scale)+'%';
+        document.getElementById('gpu-track').style.width = (100*gpu/scale)+'%';
+        document.getElementById('upload-segment').style.width = (100*6/gpu)+'%';
+        document.getElementById('gpu-segment').style.width = (100*2*n/gpu)+'%';
+        document.getElementById('download-segment').style.width = (100*6/gpu)+'%';
+        const comparison = cpu > gpu ? 'The GPU finishes '+(cpu/gpu).toFixed(2)+'× faster.' : 'The CPU finishes sooner.';
+        set('transfer-result','For '+n+' operation'+(n===1?'':'s')+', the CPU takes '+cpu+' ms and the GPU takes '+gpu+' ms. '+comparison);
+      }
+      input.addEventListener('input', update); update();
+    })();
+  </script>
+
+  <script src="../theme.js"></script>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const header = document.querySelector('body.blog-page > .site-header.blog-header');
+      const button = document.getElementById('article-theme-toggle');
+      const media = window.matchMedia('(prefers-color-scheme: dark)');
+      let explicit = false;
+      function isDark() {
+        if (root.dataset.articleTheme) return root.dataset.articleTheme === 'dark';
+        const theme = root.dataset.theme || document.body.dataset.theme;
+        if (theme === 'dark' || theme === 'light') return theme === 'dark';
+        if (root.classList.contains('dark') || document.body.classList.contains('dark') || document.body.classList.contains('dark-mode')) return true;
+        return media.matches;
+      }
+      function syncHeader() {
+        const body = getComputedStyle(document.body), base = getComputedStyle(root);
+        const transparent = c => c === 'rgba(0, 0, 0, 0)' || c === 'transparent';
+        let surface = !transparent(body.backgroundColor) ? body.backgroundColor : base.backgroundColor;
+        if (transparent(surface)) surface = isDark() ? '#151614' : '#faf9f6';
+        header.style.setProperty('--article-header-surface', surface);
+        header.style.setProperty('--article-header-ink', body.color);
+        button.setAttribute('aria-pressed', String(isDark()));
+        button.setAttribute('aria-label', isDark() ? 'Switch to light mode' : 'Switch to dark mode');
+        button.querySelector('span').textContent = isDark() ? 'Light mode' : 'Dark mode';
+      }
+      function setTheme(dark) {
+        root.dataset.articleTheme = dark ? 'dark' : 'light';
+        root.dataset.theme = dark ? 'dark' : 'light';
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        try { localStorage.setItem('article-theme', dark ? 'dark' : 'light'); } catch (_) {}
+        explicit = true;
+        syncHeader();
+      }
+      try { const saved = localStorage.getItem('article-theme'); if (saved === 'light' || saved === 'dark') setTheme(saved === 'dark'); } catch (_) {}
+      button.addEventListener('click', () => setTheme(!isDark()));
+      const observer = new MutationObserver(syncHeader);
+      observer.observe(root, {attributes:true, attributeFilter:['class','data-theme','data-article-theme']});
+      observer.observe(document.body, {attributes:true, attributeFilter:['class','data-theme']});
+      media.addEventListener('change', () => { if (!explicit) syncHeader(); });
+      window.addEventListener('load', syncHeader);
+      syncHeader();
+    })();
+  </script>
+
+</body>
+</html>
