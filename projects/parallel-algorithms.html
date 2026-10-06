@@ -100,12 +100,12 @@ pthread_barrier_wait(&amp;barrier);</code></pre></div>
 <p><strong>Measurement limits:</strong> These values are reported experiment results, not measurements rerun for this page. The reports do not establish repeat-run variability or error bars. Runtime alone does not isolate memory bandwidth, cache behavior, or scheduling as the cause of a slowdown.</p></section>
 
         <section id="repository" class="project-section repository-section"><span class="section-number">05</span><h2>Implementation &amp; next steps</h2>
-<p>The completed work includes the pthread merge-sort implementation and the HW1/HW2 benchmark reports. Upcoming work covers OpenMP parallelization, further MPI development, and CUDA GPU acceleration. A dedicated public repository link will be added when the project materials are published.</p>
+<p>The completed work includes the pthread merge-sort implementation and the HW1/HW2 benchmark reports. Upcoming work covers OpenMP parallelization, further MPI development, and CUDA GPU acceleration. Follow the project in the Parallel-Algorithms GitHub repository linked below.</p>
 <h3 class="project-subheading">Next experiments</h3><ul class="detail-list"><li>Complete and validate OpenMP Strassen parallelization, then tune task granularity and leaf size.</li><li>Repeat benchmarks and report timing variability along with speedup and efficiency.</li><li>Extend MPI work with an implemented distributed workload and measure communication time separately from computation.</li><li>Explore a CUDA matrix-multiplication version and include host/device transfer costs in end-to-end timing.</li></ul>
 <h3 class="project-subheading">The big picture: OpenMP, MPI, and CUDA together</h3>
 <p>The final goal is to run and manage a parallel workload across a complete system: use MPI to coordinate work between nodes, OpenMP to parallelize CPU work within each node, and CUDA to accelerate suitable computation on GPUs. This stage will bring together resource allocation, workload placement, synchronization, and data movement, with correctness checks and end-to-end performance measurements.</p>
 <p><strong>Target completion: the first week of December 2026.</strong> Implementation updates and results will be added as the OpenMP, MPI, and CUDA stages progress. Stay tuned!</p>
-<a class="repo-button" href="https://github.com/AdityaVMVS" target="_blank" rel="noopener noreferrer">Visit my GitHub profile <span>↗</span></a></section>
+<a class="repo-button" href="https://github.com/AdityaVMVS/Parallel-Algorithms.git" target="_blank" rel="noopener noreferrer">View project on GitHub <span>↗</span></a></section>
       </article>
     </div>
   </main>
