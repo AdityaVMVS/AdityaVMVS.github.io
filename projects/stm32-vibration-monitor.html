@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="An STM32 vibration monitor that reads an ADXL345 over SPI, runs an FFT on the board and flags changes in motor vibration.">
+  <title>Real-Time Vibration Analysis on STM32 · V.M.V.S. Aditya</title>
+  <link rel="canonical" href="https://adityavmvs.github.io/projects/stm32-vibration-monitor.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&amp;family=Space+Grotesk:wght@400;600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../project.css">
+  <script src="../theme.js" defer></script>
+</head>
+<body class="project-page">
+  <header class="site-header project-header">
+    <a class="project-brand" href="../index.html">V.M.V.S. Aditya</a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="../index.html#projects">Portfolio</a>
+      <a href="../blogs/">Blog</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <section class="project-hero">
+      <a href="../index.html#projects" class="project-back">← Back to projects</a>
+      <p class="project-eyebrow">STM32 · ADXL345 · FreeRTOS · CMSIS-DSP · Python</p>
+      <h1>Real-Time Vibration Analysis and Fault Detection on STM32</h1>
+      <p class="project-lead">An accelerometer measures how a motor vibrates. The STM32 learns its usual pattern and raises an alert when that pattern changes for several windows in a row.</p>
+      <div class="project-summary">
+        <div><span>Board</span><strong>NUCLEO-F767ZI</strong></div>
+        <div><span>Sensor</span><strong>GY-291 ADXL345</strong></div>
+        <div><span>Nominal sample rate</span><strong>1,600 samples/s per axis</strong></div>
+        <div><span>Analysis window</span><strong>1,024 samples</strong></div>
+      </div>
+    </section>
+
+    <div class="project-layout">
+      <aside class="project-directory">
+        <p>On this page</p>
+        <nav aria-label="Project sections">
+          <a href="#overview" class="active">Overview</a>
+          <a href="#acquisition">Sensor and acquisition</a>
+          <a href="#analysis">Signal processing</a>
+          <a href="#detection">Anomaly detection</a>
+          <a href="#dashboard">Dashboard and testing</a>
+          <a href="#repository">Source code</a>
+        </nav>
+      </aside>
+      <article class="project-content">
+        <section id="overview" class="project-section project-article">
+          <h2>Why I chose this project</h2>
+          <p>I wanted to see what a small accelerometer could tell me about a motor. A fan might start shaking harder, or the main frequency might move when its operating conditions change. I wanted the STM32 to spot those changes as it collected the data, with the laptop there to show what happened.</p>
+          <div class="design-flow">
+            <span>Read the sensor FIFO</span><i aria-hidden="true">→</i><span>Filter and run the FFT</span><i aria-hidden="true">→</i><span>Compare with the baseline</span><i aria-hidden="true">→</i><span>Send the result</span>
+          </div>
+        </section>
+
+        <section id="acquisition" class="project-section project-article">
+          <h2>Getting samples off the sensor</h2>
+          <p>The GY-291 breakout is meant to sit firmly on the stationary motor housing. I configured the ADXL345 for 1600 samples per second on X, Y and Z, in full-resolution mode with a ±8 g range. The Nucleo reads it over four-wire SPI at 4 MHz. I used PB5 for MOSI and PB1 for the interrupt to avoid pins shared with Ethernet and the green LED.</p>
+          <p>The sensor collects readings in a FIFO and raises an interrupt at 16 samples, about every 10 ms. That wakes the highest-priority FreeRTOS task. It uses DMA to read one X/Y/Z set per SPI transaction, then fills a fixed-size buffer. Analysis works on completed windows while acquisition keeps taking samples. The DMA transfer arrays sit in SRAM1 so DMA2 can access them.</p>
+        </section>
+
+        <section id="analysis" class="project-section project-article">
+          <h2>Turning motion into useful numbers</h2>
+          <p>Each window covers 640 ms and overlaps the previous one by half, so the firmware can report about every 320 ms. It processes one selected axis. It removes the average and uses a 10 Hz high-pass filter to reduce slow changes. From this signal it calculates RMS, peak, crest factor and kurtosis.</p>
+          <p>A Hann window smooths the ends of the samples before the CMSIS-DSP FFT. The FFT separates the movement into frequencies, with bins about 1.56 Hz apart. I use the spectrum to find the strongest frequency, its energy and centroid, and how the energy is spread across 10–100 Hz, 100–300 Hz and 300–600 Hz.</p>
+        </section>
+
+        <section id="detection" class="project-section project-article">
+          <h2>Learning what normal looks like</h2>
+          <p>The first 64 windows teach the firmware what to expect for RMS, dominant frequency, spectral energy and kurtosis. After that, it measures how far each new window falls from the baseline. A sustained rise in vibration can trigger a warning or a critical alert. A frequency shift or a change in the shape of the signal can trigger an anomaly.</p>
+          <p>The detector waits for three unusual windows so a single bump does not leave an alert on. It reports sensor and acquisition failures separately, and starts a fresh window after a data gap. This is condition monitoring. Using the signal to estimate when a motor will fail would need longer-term measurements from machines tracked through failure.</p>
+        </section>
+
+        <section id="dashboard" class="project-section project-article">
+          <h2>Dashboard and testing</h2>
+          <p>The board sends feature values, the condition, error counts and timing over the ST-LINK virtual serial port. The Python dashboard logs them to CSV and plots changes in RMS and band energy. I can also request a raw three-axis window to plot its spectrum on the laptop and compare it with the STM32’s output.</p>
+          <p>The Arm firmware builds, and 42 automated tests passed on the host. The tests compare the firmware’s C analysis code with SciPy using known tones, noise and other synthetic signals. They also check when alerts turn on and off and how the serial parser handles missing or damaged data. Sensor bring-up, real motor measurements and the 24-hour test still need to run on the board.</p>
+        </section>
+
+        <section id="repository" class="project-section repository-section">
+          <h2>Source code</h2>
+          <p>The repository has the firmware, the Python dashboard, the wiring and build instructions, and the bench test plan.</p>
+          <a class="repo-button" href="https://github.com/AdityaVMVS/Predective-Maintaince">View project on GitHub <span aria-hidden="true">↗</span></a>
+        </section>
+      </article>
+    </div>
+  </main>
+  <footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Semiconductor &amp; Embedded Portfolio</p></footer>
+  <script src="../project.js"></script>
+</body>
+</html>
