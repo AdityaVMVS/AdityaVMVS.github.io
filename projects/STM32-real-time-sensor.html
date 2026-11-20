@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="An STM32 feedback loop with register-level drivers, FreeRTOS PID control, and a Python hardware-in-the-loop bench test."><title>STM32 Real-Time Sensor &amp; Actuator Control Platform · V.M.V.S. Aditya</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="../style.css"><link rel="stylesheet" href="../project.css"><script src="../theme.js" defer></script></head>
+<body class="project-page"><header class="site-header project-header"><a class="project-brand" href="../index.html">V.M.V.S. Aditya</a><nav class="nav"><a href="../index.html#projects">Portfolio</a><a href="../blogs/">Blog</a><a href="../index.html#contact">Contact</a></nav></header>
+<main>
+  <section class="project-hero">
+    <a href="../index.html#projects" class="project-back">← Back to projects</a>
+    <p class="project-eyebrow">STM32 · Embedded C · FreeRTOS · Python</p>
+    <h1>STM32 Real-Time Sensor &amp; Actuator Control Platform</h1>
+    <p class="project-lead">A feedback controller that reads a voltage, adjusts a PWM output, and records how quickly the circuit responds.</p>
+    <div class="project-summary">
+      <div><span>Board</span><strong>NUCLEO-F401RE</strong></div>
+      <div><span>Control loop</span><strong>100 Hz PID</strong></div>
+      <div><span>Bench tests</span><strong>Python &amp; pytest</strong></div>
+      <div><span>Timeline</span><strong>Nov 2026 – Present</strong></div>
+    </div>
+  </section>
+
+  <div class="project-layout">
+    <aside class="project-directory">
+      <p>Project directory</p>
+      <nav>
+        <a href="#introduction" class="active">Introduction</a>
+        <a href="#tools">Tools &amp; setup</a>
+        <a href="#details">Project details</a>
+        <a href="#testing">Bench testing</a>
+        <a href="#repository">Repository</a>
+      </nav>
+    </aside>
+
+    <article class="project-content">
+      <section id="introduction" class="project-section">
+        <h2>Introduction</h2>
+        <p>I wanted a small project where I could follow the whole feedback loop, from reading the sensor input to seeing what the output did on the board. The controller compares the voltage it reads with a target voltage and changes the PWM duty cycle to bring the reading closer to that target.</p>
+        <div class="design-flow"><span>ADC reading</span><i>→</i><span>Filter &amp; PID</span><i>→</i><span>PWM output</span><i>→</i><span>RC circuit</span></div>
+      </section>
+
+      <section id="tools" class="project-section">
+        <h2>Tools &amp; setup</h2>
+        <div class="spec-grid">
+          <div><h3>STM32 Nucleo</h3><p>The NUCLEO-F401RE reads the voltage on PA0 and drives PWM on PA6. The ST-LINK USB connection also gives the computer a serial port.</p></div>
+          <div><h3>RC circuit</h3><p>Two resistors and a capacitor turn the PWM pulses into a voltage that changes gradually. That gives the controller a real circuit to regulate on a small bench setup.</p></div>
+          <div><h3>Embedded C &amp; FreeRTOS</h3><p>CMSIS provides the register definitions. FreeRTOS schedules the control and telemetry tasks.</p></div>
+          <div><h3>Python &amp; pytest</h3><p>The test sends commands over serial and saves the samples and calculated measurements as CSV and JSON.</p></div>
+        </div>
+      </section>
+
+      <section id="details" class="project-section project-article">
+        <h2>Project details</h2>
+        <h3>From the ADC to the PWM pin</h3>
+        <p>Every 10 ms, a FreeRTOS task starts the ADC and waits for a notification from the conversion interrupt. It smooths the reading with a low-pass filter, runs the PID calculation, and writes the new duty cycle to the PWM timer. I limited the duty cycle to 0–100% and pause the integral when it would push the output farther into either limit.</p>
+        <h3>Keeping serial output out of the control loop</h3>
+        <p>The controller puts its latest reading in a one-slot queue. A lower-priority task handles sending it over UART. If the serial side falls behind, the controller carries on and the sequence numbers show where a frame was missed.</p>
+        <h3>What happens when the input fails</h3>
+        <p>The firmware turns the PWM off if the ADC times out or if the loop runs outside its timing bounds. It also watches for readings stuck near either voltage rail. For a low reading, the controller checks that it was already driving the output so a discharged capacitor at idle can read zero. The output stays off after a fault until the board is reset.</p>
+      </section>
+
+      <section id="testing" class="project-section project-article">
+        <h2>Bench testing</h2>
+        <p>The pytest bench run steps the target voltage up and records the circuit as it responds. It then shorts the ADC input to ground using a dedicated GPIO in the HIL build, checks that the controller commands zero duty, and checks that it stays off when the short is released.</p>
+        <ul class="detail-list">
+          <li><strong>Latency</strong> is the time from the start of sampling to the PWM register write.</li>
+          <li><strong>Scheduling jitter</strong> shows how far the time between samples moves away from 10 ms.</li>
+          <li><strong>Overshoot</strong> shows how far the feedback voltage rises above the target.</li>
+          <li><strong>Settling time</strong> shows how long the feedback voltage takes to enter and stay within a small band around the target.</li>
+        </ul>
+        <p>The firmware builds and Python measurement tests have been checked. Physical bench measurements are still pending.</p>
+      </section>
+
+      <section id="repository" class="project-section repository-section">
+        <h2>Source code</h2>
+        <p>The README covers the wiring, how to build and flash the firmware, and how to run the tests.</p>
+        <a class="repo-button" href="https://github.com/AdityaVMVS/stm32-real-time-sensor" target="_blank" rel="noopener noreferrer">View project on GitHub <span>↗</span></a>
+      </section>
+    </article>
+  </div>
+</main>
+<footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Semiconductor &amp; Embedded Portfolio</p></footer><script src="../project.js"></script></body></html>
