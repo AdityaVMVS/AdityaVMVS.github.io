@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="An STM32F767ZI bootloader that updates firmware over UART, tries the new image and rolls back if startup fails.">
+  <title>STM32 Firmware Bootloader · V.M.V.S. Aditya</title>
+  <link rel="canonical" href="https://adityavmvs.github.io/projects/stm32-bootloader.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&amp;family=Space+Grotesk:wght@400;600&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../project.css">
+  <script src="../theme.js" defer></script>
+</head>
+<body class="project-page">
+  <header class="site-header project-header">
+    <a class="project-brand" href="../index.html">V.M.V.S. Aditya</a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="../index.html#projects">Portfolio</a>
+      <a href="../blogs/">Blog</a>
+      <a href="../index.html#contact">Contact</a>
+    </nav>
+  </header>
+  <main>
+    <section class="project-hero">
+      <a href="../index.html#projects" class="project-back">← Back to projects</a>
+      <p class="project-eyebrow">STM32 · Cortex-M7 · Embedded C · Python</p>
+      <h1>STM32 Firmware Bootloader with Fail-Safe Updates</h1>
+      <p class="project-lead">The board keeps its working firmware while it tries an update. If the new firmware gets stuck, the bootloader can bring the old version back.</p>
+      <div class="project-summary">
+        <div><span>Board</span><strong>NUCLEO-F767ZI</strong></div>
+        <div><span>Update link</span><strong>USART3 at 115200 baud</strong></div>
+        <div><span>Flash layout</span><strong>Two application slots</strong></div>
+        <div><span>Trial limit</span><strong>Three boot attempts</strong></div>
+      </div>
+    </section>
+
+    <div class="project-layout">
+      <aside class="project-directory">
+        <p>On this page</p>
+        <nav aria-label="Project sections">
+          <a href="#overview" class="active">Overview</a>
+          <a href="#flash">Flash layout</a>
+          <a href="#update">Serial update</a>
+          <a href="#rollback">Boot and rollback</a>
+          <a href="#testing">Testing</a>
+          <a href="#repository">Source code</a>
+        </nav>
+      </aside>
+      <article class="project-content">
+        <section id="overview" class="project-section project-article">
+          <h2>Why I chose this project</h2>
+          <p>I wanted to see what happens when a firmware update goes wrong. A cable can come loose halfway through a transfer, and a firmware file can arrive intact but still hang on startup. I used those two situations to decide what the bootloader should do before and after resetting the board.</p>
+          <div class="design-flow"><span>Send an image</span><i aria-hidden="true">→</i><span>Check it in flash</span><i aria-hidden="true">→</i><span>Try to boot</span><i aria-hidden="true">→</i><span>Confirm or roll back</span></div>
+          <p>The bootloader and LED demos are written in C. Python packages the binary and sends it over the ST-LINK USB connection. I used the Arm GNU Toolchain for builds and documented first-time programming over SWD with STM32CubeProgrammer.</p>
+        </section>
+
+        <section id="flash" class="project-section project-article">
+          <h2>How I split up flash</h2>
+          <p>The STM32F767ZI has 2 MiB of internal flash. I used single-bank mode and divided it along the chip’s erase-sector boundaries. Each application slot gets three 256 KiB sectors. Updating B can then erase all three of its sectors while A stays available.</p>
+          <ul class="detail-list">
+            <li><strong>Bootloader.</strong> The first 128 KiB starts at <code>0x08000000</code>.</li>
+            <li><strong>Primary boot journal.</strong> The next 128 KiB starts at <code>0x08020000</code>.</li>
+            <li><strong>Slot A and slot B.</strong> They start at <code>0x08040000</code> and <code>0x08100000</code>.</li>
+            <li><strong>Backup boot journal.</strong> The last 256 KiB starts at <code>0x081C0000</code>.</li>
+          </ul>
+          <p>A 512-byte header sits at the front of each slot. The vector tables start at <code>0x08040200</code> and <code>0x08100200</code>, so the same source builds into two binaries at different addresses. Flash operations can stall the processor in single-bank mode. The bootloader does the update before handing control to an application, and the host waits for each reply before sending more data.</p>
+        </section>
+
+        <section id="update" class="project-section project-article">
+          <h2>Sending an update</h2>
+          <p>The Python tool adds a header with the target ID, firmware version, length and SHA-256 digest. It sends that package over USART3 through the Nucleo’s virtual COM port on PD8 and PD9. Every packet carries a sequence number and a CRC32. If an acknowledgment is lost, Python sends the same packet again and the bootloader replays the reply.</p>
+          <p>The bootloader only writes to the selected inactive slot. Once the transfer finishes, it checks the header CRC, validates the application stack and reset addresses, and calculates the SHA-256 digest from flash. Only then does it make the image pending. A transfer cut short can be started over from the beginning. The current design detects corruption and accepts unsigned packages from a trusted host.</p>
+        </section>
+
+        <section id="rollback" class="project-section project-article">
+          <h2>What happens on the next boot</h2>
+          <p>The boot journal records which image was confirmed, which is pending and how many attempts the pending image has had. The bootloader writes a CRC and a final commit marker for each record. If a reset interrupts the write, the next boot can use the previous valid record. When one journal sector fills, the next record goes into the other sector.</p>
+          <p>Before starting the pending application, the bootloader saves the attempt count and starts the independent watchdog. It then points the Cortex-M7 at the application’s vector table, loads its stack pointer and jumps to its reset handler. The healthy LED demo confirms itself after startup. The failing demo hangs on purpose. If B uses all three tries, the bootloader returns to A when A is still valid. With no usable application, it waits for a serial update. Holding the user button during reset also opens recovery.</p>
+        </section>
+
+        <section id="testing" class="project-section project-article">
+          <h2>What I checked</h2>
+          <p>The bootloader and three demo binaries build with the Arm toolchain. The Python tests check packaging, bad frames and retries. The C tests run the journal and image checks against simulated flash, including a write that stops before the journal commit finishes.</p>
+          <p>Board testing is still pending. I want to confirm the watchdog rollback on the Nucleo, interrupt updates during erase and programming, and measure startup, transfer and recovery times. The next application milestone is a FreeRTOS demo that waits for its critical tasks to report healthy before confirming the update.</p>
+        </section>
+
+        <section id="repository" class="project-section repository-section">
+          <h2>Source code</h2>
+          <p>The README shows how to build and flash the project. The repository also has the flash map, packet format and bench test plan.</p>
+          <a class="repo-button" href="https://github.com/AdityaVMVS/STM32-based-bootloader-Project">View project on GitHub <span aria-hidden="true">↗</span></a>
+        </section>
+      </article>
+    </div>
+  </main>
+  <footer class="footer"><p>© 2026 · V.M.V.S. Aditya · Semiconductor &amp; Embedded Portfolio</p></footer>
+  <script src="../project.js"></script>
+</body>
+</html>
