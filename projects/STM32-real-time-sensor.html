@@ -8,7 +8,7 @@
     <h1>STM32 Real-Time Sensor &amp; Actuator Control Platform</h1>
     <p class="project-lead">A feedback controller that reads a voltage, adjusts a PWM output, and records how quickly the circuit responds.</p>
     <div class="project-summary">
-      <div><span>Board</span><strong>NUCLEO-F401RE</strong></div>
+      <div><span>Board</span><strong>NUCLEO-F767ZI</strong></div>
       <div><span>Control loop</span><strong>100 Hz PID</strong></div>
       <div><span>Bench tests</span><strong>Python &amp; pytest</strong></div>
       <div><span>Timeline</span><strong>Nov 2026 – Present</strong></div>
@@ -37,7 +37,7 @@
       <section id="tools" class="project-section">
         <h2>Tools &amp; setup</h2>
         <div class="spec-grid">
-          <div><h3>STM32 Nucleo</h3><p>The NUCLEO-F401RE reads the voltage on PA0 and drives PWM on PA6. The ST-LINK USB connection also gives the computer a serial port.</p></div>
+          <div><h3>STM32 Nucleo</h3><p>The NUCLEO-F767ZI reads the voltage on PA3 (A0) and drives PWM on PA6 (D12). The ST-LINK USB connection carries the USART3 serial traffic on PD8 and PD9.</p></div>
           <div><h3>RC circuit</h3><p>Two resistors and a capacitor turn the PWM pulses into a voltage that changes gradually. That gives the controller a real circuit to regulate on a small bench setup.</p></div>
           <div><h3>Embedded C &amp; FreeRTOS</h3><p>CMSIS provides the register definitions. FreeRTOS schedules the control and telemetry tasks.</p></div>
           <div><h3>Python &amp; pytest</h3><p>The test sends commands over serial and saves the samples and calculated measurements as CSV and JSON.</p></div>
@@ -56,7 +56,7 @@
 
       <section id="testing" class="project-section project-article">
         <h2>Bench testing</h2>
-        <p>The pytest bench run steps the target voltage up and records the circuit as it responds. It then shorts the ADC input to ground using a dedicated GPIO in the HIL build, checks that the controller commands zero duty, and checks that it stays off when the short is released.</p>
+        <p>The pytest bench run steps the target voltage up and records the circuit as it responds. It then shorts the ADC input to ground using PF3 (A3) in the HIL build, checks that the controller commands zero duty, and checks that it stays off when the short is released.</p>
         <ul class="detail-list">
           <li><strong>Latency</strong> is the time from the start of sampling to the PWM register write.</li>
           <li><strong>Scheduling jitter</strong> shows how far the time between samples moves away from 10 ms.</li>
